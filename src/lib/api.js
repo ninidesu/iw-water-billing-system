@@ -20,17 +20,26 @@ async function fetchAll(table, columns = '*') {
 }
 
 export async function getCurrentRate() {
+  const tier = await supabase
+    .from('rate_tiers')
+    .select('rate_per_m3,effective_from')
+    .eq('is_active', true)
+    .lte('effective_from', todayISO())
+    .order('effective_from', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (tier.data) return tier.data
   return unwrap(await supabase.from('water_rates').select('rate_per_m3,effective_from')
     .lte('effective_from', todayISO()).order('effective_from', { ascending: false }).limit(1).maybeSingle())
 }
 
 export async function getAdminData() {
-  const accountColumns = 'id,can,legacy_customer_id,account_name,installation_reading'
+  const accountColumns = 'id,can,legacy_customer_id,account_name,installation_reading,property_type'
   const accountResult = await supabase.from('contract_accounts').select(accountColumns)
   const loadedAccounts = accountResult.error?.code === '42703'
     ? unwrap(await supabase.from('contract_accounts').select('id,can,legacy_customer_id,account_name'))
     : unwrap(accountResult)
-  const [customerRows, profiles, billRows, paymentRows, goalResult, accounts, contacts, applications] = await Promise.all([
+  const [customerRows, profiles, billRows, paymentRows, goalResult, accounts, contacts, applications, casesResult, rateResult] = await Promise.all([
     fetchAll('customers'),
     fetchAll('profiles', 'id,full_name,role'),
     fetchAll('bills'),
@@ -38,7 +47,17 @@ export async function getAdminData() {
     supabase.from('settings').select('value').eq('key', 'monthly_collection_goal').maybeSingle(),
     Promise.resolve(loadedAccounts),
     supabase.from('account_contacts').select('account_id,phone,email').then(unwrap),
-    fetchAll('service_applications', 'linked_account_id,contact_no,contact_email,notes,status'),
+    fetchAll('service_applications', 'id,reference_no,applicant_name,linked_account_id,contact_no,contact_email,notes,status,created_at'),
+    supabase.from('service_cases').select('id,reference_no,requester_name,case_type,status,created_at'),
+    supabase
+      .from('rate_tiers')
+      .select('rate_per_m3,effective_from')
+      .eq('is_active', true)
+      .lte('effective_from', todayISO())
+      .order('effective_from', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then((res) => (res.data ? res : supabase.from('water_rates').select('rate_per_m3,effective_from').lte('effective_from', todayISO()).order('effective_from', { ascending: false }).limit(1).maybeSingle())),
   ])
   const profileMap = new Map(profiles.map((profile) => [profile.id, profile]))
   const migrationResult = await supabase.from('customer_migrations').select('*')
@@ -53,13 +72,22 @@ export async function getAdminData() {
       const contact = contactsByAccount.get(account?.id)
       const application = applicationsByAccount.get(account?.id)
       const migration = migrated.get(customer.id)
-      return { ...customer, account_id: account?.id || null, can: account?.can || null, full_name: account?.account_name || profileMap.get(customer.id)?.full_name || 'Unnamed customer', initial_reading: account?.installation_reading, mobile_no: contact?.phone || application?.contact_no || customer.contact_no || null, email: contact?.email || application?.contact_email || null, property_type: migration?.property_type || application?.notes || null }
+      return { ...customer, account_id: account?.id || null, can: account?.can || null, full_name: account?.account_name || profileMap.get(customer.id)?.full_name || 'Unnamed customer', initial_reading: account?.installation_reading, mobile_no: contact?.phone || application?.contact_no || customer.contact_no || null, email: contact?.email || application?.contact_email || null, property_type: account?.property_type || migration?.property_type || application?.notes || null }
     })
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
   const customerMap = new Map(customers.map((customer) => [customer.id, customer]))
   const bills = billRows.map((bill) => ({ ...bill, customer: customerMap.get(bill.customer_id) || null }))
     .sort((a, b) => b.billing_month.localeCompare(a.billing_month) || b.created_at.localeCompare(a.created_at))
-  return { customers, bills, profiles, payments: paymentRows.sort((a, b) => b.paid_at.localeCompare(a.paid_at)), goal: Number(unwrap(goalResult)?.value || 0) }
+  return {
+    customers,
+    bills,
+    profiles,
+    payments: paymentRows.sort((a, b) => b.paid_at.localeCompare(a.paid_at)),
+    goal: Number(unwrap(goalResult)?.value || 0),
+    applications,
+    cases: casesResult.data || [],
+    currentRate: rateResult.data || null,
+  }
 }
 
 export async function getOwnBills(accountId) {

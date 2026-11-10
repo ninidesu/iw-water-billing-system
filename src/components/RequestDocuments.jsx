@@ -36,9 +36,22 @@ export function CaseAttachment({reference,token,caseId}) {
     } catch(err){setError(textError(err))}
     finally{setBusy(false)}
   }
-  return <div className="document-item">{caseId ? <button disabled={busy} onClick={()=>handle()}>Check supporting file</button> :
-    <label>Supporting file (optional, PDF or image up to 2 MB)<input type="file" disabled={busy} accept="application/pdf,image/jpeg,image/png" onChange={e=>handle(e.target.files[0])}/></label>}
-    <Notice type="error">{error}</Notice><Notice type="success">{notice}</Notice></div>
+  return (
+    <div className="compact-attachment-item">
+      {caseId ? (
+        <button type="button" className="button button-ghost button-small" disabled={busy} onClick={()=>handle()}>
+          Check Supporting File
+        </button>
+      ) : (
+        <label className="compact-upload-label">
+          Supporting file (optional, PDF or image up to 2 MB)
+          <input type="file" disabled={busy} accept="application/pdf,image/jpeg,image/png" onChange={e=>handle(e.target.files[0])}/>
+        </label>
+      )}
+      <Notice type="error">{error}</Notice>
+      <Notice type="success">{notice}</Notice>
+    </div>
+  )
 }
 
 export default function RequestDocuments({ applicationId, reference, token, closed }) {
@@ -73,15 +86,125 @@ export default function RequestDocuments({ applicationId, reference, token, clos
     saveDownload(data[0],item.label)
   }
   if(!staff && !items.length && !error) return null
-  return <section className="checklist request-checklist"><div className="checklist-heading"><h2>Requested documents</h2><p>Add and review documents required to process this request.</p></div><Notice type="error">{error}</Notice>
-    {items.map(item=><div className="document-item" key={item.requirement_id}>
-      <strong>{item.label}</strong><span>{item.state}</span>
-      {!staff && !closed && ['requested','rejected'].includes(item.state) && <label>Upload PDF or image (2 MB max)<input disabled={busy} type="file" accept="application/pdf,image/png,image/jpeg" onChange={e=>{const file=e.target.files[0];if(file)action(()=>upload(item,file))}}/></label>}
-      {staff && item.state==='submitted' && <button disabled={busy} onClick={()=>action(()=>download(item))} type="button">Download</button>}
-      {staff && !closed && ['submitted','requested','rejected'].includes(item.state) && ['accepted','rejected'].map(state=><button type="button" disabled={busy} key={state} onClick={()=>action(()=>supabase.from('application_requirements').update({status:state,reviewed_by:user.id,reviewed_at:new Date().toISOString()}).eq('id',item.requirement_id).eq('status',item.state).select('id').single())}>{state==='accepted'?'Accept':'Request replacement'}</button>)}
-    </div>)}
-    {staff && !closed && <form className="form-stack" onSubmit={e=>{e.preventDefault();const form=e.currentTarget;const name=new FormData(form).get('label').trim();if(name)action(async()=>{const res=await supabase.from('application_requirements').insert({application_id:applicationId,requirement_name:name});if(!res.error)form.reset();return res})}}>
-      <label>Document needed<input required name="label" maxLength="160"/></label><button className="button" disabled={busy}>Request document</button>
-    </form>}
-  </section>
+  return (
+    <section className="checklist request-checklist compact-checklist">
+      <div className="compact-checklist-heading">
+        <strong>Requested Documents {items.length ? `(${items.length})` : ''}</strong>
+      </div>
+      <Notice type="error">{error}</Notice>
+
+      {items.length > 0 && (
+        <div className="compact-doc-list">
+          {items.map((item) => (
+            <div className="compact-doc-item" key={item.requirement_id}>
+              <span className="compact-doc-name">{item.label}</span>
+              <span className={`compact-doc-status status-${item.state}`}>{item.state}</span>
+              {!staff && !closed && ['requested','rejected'].includes(item.state) && (
+                <label className="compact-upload-label">
+                  Upload file
+                  <input
+                    disabled={busy}
+                    type="file"
+                    accept="application/pdf,image/png,image/jpeg"
+                    onChange={(e) => {
+                      const file = e.target.files[0]
+                      if (file) action(() => upload(item, file))
+                    }}
+                  />
+                </label>
+              )}
+              {staff && item.state === 'submitted' && (
+                <button
+                  disabled={busy}
+                  onClick={() => action(() => download(item))}
+                  type="button"
+                  className="button button-ghost button-xs"
+                >
+                  Download
+                </button>
+              )}
+              {staff && !closed && ['submitted','requested','rejected'].includes(item.state) && (
+                <div className="compact-doc-actions">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    className="button button-success-ghost button-xs"
+                    onClick={() =>
+                      action(() =>
+                        supabase
+                          .from('application_requirements')
+                          .update({
+                            status: 'accepted',
+                            reviewed_by: user.id,
+                            reviewed_at: new Date().toISOString(),
+                          })
+                          .eq('id', item.requirement_id)
+                          .eq('status', item.state)
+                          .select('id')
+                          .single()
+                      )
+                    }
+                  >
+                    Accept
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    className="button button-ghost button-xs"
+                    onClick={() =>
+                      action(() =>
+                        supabase
+                          .from('application_requirements')
+                          .update({
+                            status: 'rejected',
+                            reviewed_by: user.id,
+                            reviewed_at: new Date().toISOString(),
+                          })
+                          .eq('id', item.requirement_id)
+                          .eq('status', item.state)
+                          .select('id')
+                          .single()
+                      )
+                    }
+                  >
+                    Replace
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {staff && !closed && (
+        <form
+          className="compact-add-doc-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const form = e.currentTarget
+            const name = new FormData(form).get('label').trim()
+            if (name) {
+              action(async () => {
+                const res = await supabase
+                  .from('application_requirements')
+                  .insert({ application_id: applicationId, requirement_name: name })
+                if (!res.error) form.reset()
+                return res
+              })
+            }
+          }}
+        >
+          <input
+            required
+            name="label"
+            placeholder="Request document (e.g. Valid ID, Deed of Sale)..."
+            maxLength="160"
+          />
+          <button className="button button-small" disabled={busy}>
+            + Request
+          </button>
+        </form>
+      )}
+    </section>
+  )
 }

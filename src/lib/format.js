@@ -2,6 +2,13 @@ export const peso = (value = 0) => new Intl.NumberFormat('en-PH', {
   style: 'currency', currency: 'PHP', minimumFractionDigits: 2,
 }).format(Number(value) || 0)
 
+export const vatBreakdown = (grossAmount = 0) => {
+  const gross = Math.max(0, Number(grossAmount) || 0)
+  const vatableSale = Math.round((gross / 1.12) * 100) / 100
+  const vatAmount = Math.round((gross - vatableSale) * 100) / 100
+  return { gross, vatableSale, vatAmount }
+}
+
 export const dateLabel = (value) => {
   if (!value) return '—'
   const timestamp = String(value).includes('T')
@@ -22,6 +29,8 @@ export const dateISOManila = (value = new Date()) => {
 export const todayISO = () => dateISOManila()
 
 export const billStatus = (bill) => {
+  if (!bill) return 'Unknown'
+  if (bill.status === 'pending' || bill.water_used == null || bill.amount == null) return 'Pending'
   if (Number(bill.balance) <= 0) return 'Paid'
   if (bill.due_date < todayISO()) return 'Overdue'
   if (Number(bill.amount_paid) > 0) return 'Partial'
@@ -37,3 +46,13 @@ export const errorMessage = (error) => {
   if (error.code === '23505') return 'This value is already in use. Check the meter number or billing month.'
   return error.message || String(error)
 }
+
+export const formatApplicationRef = (ref) => {
+  if (!ref) return '—'
+  if (ref.startsWith('IW-NSA-')) {
+    return 'NA-' + ref.slice(7, 13)
+  }
+  return ref
+}
+
+

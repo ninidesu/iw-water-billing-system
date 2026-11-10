@@ -1,6 +1,380 @@
-.thermal-copies{display:flex;justify-content:center;align-items:flex-start;gap:24px;flex-wrap:wrap}
-.thermal-slip{box-sizing:border-box;width:80mm;max-width:100%;padding:5mm 4mm;background:#fff;color:#000;font:12px/1.5 'Courier New',monospace;box-shadow:0 4px 20px #0001;overflow-wrap:anywhere}
-.thermal-slip header{text-align:center;padding-bottom:12px}.thermal-slip h1{margin:0;font:700 18px/1.3 'Courier New',monospace;letter-spacing:1px;color:#000}.thermal-slip h2{margin:10px 0 0;font:700 13px/1.4 'Courier New',monospace;color:#000}.thermal-slip p{margin:3px 0}.thermal-section{margin:0;padding:10px 0;border-top:1px dashed #000}.thermal-section>div{display:flex;justify-content:space-between;gap:10px;margin:4px 0}.thermal-section dt{flex:1}.thermal-section dd{margin:0;text-align:right;max-width:60%}.thermal-items{width:100%;min-width:0;border-collapse:collapse;font:inherit;table-layout:fixed}.thermal-items th,.thermal-items td{padding:5px 0;border:0;color:#000;background:#fff;font:inherit;vertical-align:top;white-space:normal;overflow-wrap:anywhere}.thermal-items th{border-block:1px dashed #000;text-align:left}.thermal-items th:last-child,.thermal-items td:last-child{text-align:right;width:38%}.thermal-items tbody tr:hover{background:#fff}.thermal-total{font-weight:700;font-size:14px}.thermal-signature{padding-top:15px}.thermal-thanks{text-align:center;padding-top:14px}
-@page thermal{size:80mm 200mm;margin:0}
-@media print{.thermal-receipt-page{page:thermal;width:80mm!important;margin:0!important;padding:0!important}.thermal-copies{display:block}.thermal-slip{width:80mm;max-width:none;box-shadow:none;margin:0;break-inside:auto}.thermal-slip+.thermal-slip{break-before:page}.thermal-items tr,.thermal-section>div{break-inside:avoid}.thermal-slip header{break-after:avoid}}
-.thermal-customer{margin:0 0 6px}.thermal-customer>div{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;margin:4px 0}.thermal-customer dd{margin:0;max-width:none;text-align:right;overflow-wrap:anywhere}
+/* Receipt Container */
+.thermal-copies {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+/* Base Thermal Slip */
+.thermal-slip {
+  box-sizing: border-box;
+  background: #ffffff;
+  color: #000000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow-wrap: anywhere;
+}
+
+/* 1. 58mm Roll Format (Compact POS) */
+.thermal-slip-58mm {
+  width: 58mm;
+  max-width: 100%;
+  padding: 4mm 3mm;
+  font: 10.5px/1.35 'Courier New', monospace;
+  letter-spacing: -0.2px;
+}
+.thermal-slip-58mm header {
+  text-align: center;
+  padding-bottom: 8px;
+}
+.thermal-slip-58mm header h1 {
+  margin: 0;
+  font: 700 15px/1.2 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+.thermal-slip-58mm header h2 {
+  margin: 6px 0 0;
+  font: 700 11.5px/1.3 'Courier New', monospace;
+}
+.thermal-slip-58mm header p {
+  margin: 2px 0;
+  font-size: 10px;
+}
+.thermal-slip-58mm .thermal-section {
+  padding: 6px 0;
+  border-top: 1px dashed #000;
+}
+.thermal-slip-58mm .thermal-section > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  margin: 3px 0;
+  font-size: 10px;
+}
+.thermal-slip-58mm .thermal-section dt {
+  flex: 1;
+}
+.thermal-slip-58mm .thermal-section dd {
+  margin: 0;
+  text-align: right;
+  max-width: 55%;
+}
+.thermal-slip-58mm .thermal-customer {
+  margin: 0 0 4px;
+}
+.thermal-slip-58mm .thermal-customer > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  margin: 3px 0;
+  font-size: 10px;
+}
+.thermal-slip-58mm .thermal-customer dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.thermal-slip-58mm .thermal-items {
+  width: 100%;
+  border-collapse: collapse;
+  font: inherit;
+  table-layout: fixed;
+}
+.thermal-slip-58mm .thermal-items th,
+.thermal-slip-58mm .thermal-items td {
+  padding: 3px 0;
+  border: 0;
+  font-size: 10px;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.thermal-slip-58mm .thermal-items th {
+  border-block: 1px dashed #000;
+  text-align: left;
+}
+.thermal-slip-58mm .thermal-items th:last-child,
+.thermal-slip-58mm .thermal-items td:last-child {
+  text-align: right;
+  width: 42%;
+}
+.thermal-slip-58mm .thermal-total {
+  font-size: 12px;
+  font-weight: 700;
+}
+.thermal-slip-58mm .thermal-signature {
+  padding-top: 10px;
+  font-size: 9.5px;
+}
+.thermal-slip-58mm .thermal-thanks {
+  text-align: center;
+  padding-top: 10px;
+  font-size: 9.5px;
+}
+
+/* 2. 80mm Roll Format (Standard Desktop POS) */
+.thermal-slip-80mm {
+  width: 80mm;
+  max-width: 100%;
+  padding: 5mm 4mm;
+  font: 12px/1.5 'Courier New', monospace;
+}
+.thermal-slip-80mm header {
+  text-align: center;
+  padding-bottom: 12px;
+}
+.thermal-slip-80mm h1 {
+  margin: 0;
+  font: 700 18px/1.3 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+.thermal-slip-80mm h2 {
+  margin: 10px 0 0;
+  font: 700 13px/1.4 'Courier New', monospace;
+}
+.thermal-slip-80mm p {
+  margin: 3px 0;
+}
+.thermal-slip-80mm .thermal-section {
+  margin: 0;
+  padding: 10px 0;
+  border-top: 1px dashed #000;
+}
+.thermal-slip-80mm .thermal-section > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 4px 0;
+}
+.thermal-slip-80mm .thermal-section dt {
+  flex: 1;
+}
+.thermal-slip-80mm .thermal-section dd {
+  margin: 0;
+  text-align: right;
+  max-width: 60%;
+}
+.thermal-slip-80mm .thermal-customer {
+  margin: 0 0 6px;
+}
+.thermal-slip-80mm .thermal-customer > div {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  margin: 4px 0;
+}
+.thermal-slip-80mm .thermal-customer dd {
+  margin: 0;
+  max-width: none;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.thermal-slip-80mm .thermal-items {
+  width: 100%;
+  min-width: 0;
+  border-collapse: collapse;
+  font: inherit;
+  table-layout: fixed;
+}
+.thermal-slip-80mm .thermal-items th,
+.thermal-slip-80mm .thermal-items td {
+  padding: 5px 0;
+  border: 0;
+  color: #000;
+  background: #fff;
+  font: inherit;
+  vertical-align: top;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.thermal-slip-80mm .thermal-items th {
+  border-block: 1px dashed #000;
+  text-align: left;
+}
+.thermal-slip-80mm .thermal-items th:last-child,
+.thermal-slip-80mm .thermal-items td:last-child {
+  text-align: right;
+  width: 38%;
+}
+.thermal-slip-80mm .thermal-total {
+  font-weight: 700;
+  font-size: 14px;
+}
+.thermal-slip-80mm .thermal-signature {
+  padding-top: 15px;
+}
+.thermal-slip-80mm .thermal-thanks {
+  text-align: center;
+  padding-top: 14px;
+}
+
+/* 3. A4 / Letter Voucher Format */
+.thermal-slip-a4 {
+  width: 100%;
+  max-width: 580px;
+  padding: 28px 34px;
+  font: 13.5px/1.6 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  border: 1px solid #D1D9E6;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.05);
+}
+.thermal-slip-a4 header {
+  text-align: center;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #E2E8F0;
+}
+.thermal-slip-a4 header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #1B365D;
+}
+.thermal-slip-a4 header p:first-of-type {
+  font-size: 12px;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 3px 0 10px;
+}
+.thermal-slip-a4 header h2 {
+  display: inline-block;
+  margin: 0;
+  padding: 4px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  color: #0F172A;
+}
+.thermal-slip-a4 header p:last-child {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1B5E91;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 6px;
+}
+.thermal-slip-a4 .thermal-section {
+  padding: 14px 0;
+  border-top: 1px solid #E2E8F0;
+}
+.thermal-slip-a4 .thermal-section > div {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 0;
+}
+.thermal-slip-a4 .thermal-section dt {
+  color: #475569;
+  font-size: 13px;
+}
+.thermal-slip-a4 .thermal-section dd {
+  font-weight: 600;
+  color: #0F172A;
+}
+.thermal-slip-a4 .thermal-customer > div {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+}
+.thermal-slip-a4 .thermal-items {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+}
+.thermal-slip-a4 .thermal-items th {
+  background: #F8FAFC;
+  border-block: 1px solid #CBD5E1;
+  padding: 8px 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #475569;
+}
+.thermal-slip-a4 .thermal-items td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #F1F5F9;
+}
+.thermal-slip-a4 .thermal-total {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0F172A;
+  border-top: 2px solid #CBD5E1;
+  border-bottom: 2px solid #CBD5E1;
+  padding: 10px 0;
+  margin: 10px 0;
+}
+.thermal-slip-a4 .thermal-signature {
+  padding-top: 20px;
+  font-size: 12px;
+  color: #475569;
+}
+.thermal-slip-a4 .thermal-thanks {
+  text-align: center;
+  padding-top: 16px;
+  font-size: 12px;
+  color: #64748B;
+}
+
+/* Print Rules per Size */
+@media print {
+  .receipt-size-58mm {
+    width: 58mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .receipt-size-58mm .thermal-copies {
+    display: block !important;
+    gap: 0 !important;
+  }
+  .receipt-size-58mm .thermal-slip {
+    width: 58mm !important;
+    max-width: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    break-inside: auto;
+  }
+
+  .receipt-size-80mm {
+    width: 80mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .receipt-size-80mm .thermal-copies {
+    display: block !important;
+    gap: 0 !important;
+  }
+  .receipt-size-80mm .thermal-slip {
+    width: 80mm !important;
+    max-width: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    break-inside: auto;
+  }
+
+  .receipt-size-a4 {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .receipt-size-a4 .thermal-copies {
+    display: block !important;
+  }
+  .receipt-size-a4 .thermal-slip {
+    width: 100% !important;
+    max-width: 580px !important;
+    margin: 0 auto 30px !important;
+    border: 1px solid #CBD5E1 !important;
+    box-shadow: none !important;
+  }
+
+  .thermal-slip + .thermal-slip {
+    break-before: page;
+  }
+  .thermal-items tr,
+  .thermal-section > div {
+    break-inside: avoid;
+  }
+}
