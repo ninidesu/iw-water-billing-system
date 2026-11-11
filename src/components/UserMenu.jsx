@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Settings } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { useAuth } from '../context/AuthContext.jsx'
 
 function getInitials(name, email) {
@@ -68,27 +68,23 @@ export default function UserMenu() {
 
   return (
     <div className="admin-profile-container" ref={menuRef}>
-      {isAdmin && (
-        <Link
-          to="/admin/settings"
-          className="admin-header-icon-btn"
-          title="Settings"
-          aria-label="Settings"
-        >
-          <Settings size={18} strokeWidth={2} />
-        </Link>
-      )}
-
-      {/* Circular Avatar Trigger */}
+      {/* Profile Trigger Pill: Avatar + Name + Email + Down Arrow */}
       <button
         type="button"
-        className={`admin-avatar-btn ${open ? 'active' : ''}`}
+        className={`admin-profile-btn ${open ? 'active' : ''}`}
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
         aria-haspopup="true"
-        title={displayName}
+        title={`${displayName}${email ? ` (${email})` : ''}`}
       >
-        <span className="admin-avatar-initials">{initials}</span>
+        <div className="admin-profile-left">
+          <span className="admin-profile-avatar">{initials}</span>
+          <div className="admin-profile-meta">
+            <span className="admin-profile-name">{displayName}</span>
+            {email && <span className="admin-profile-email">{email}</span>}
+          </div>
+        </div>
+        <ChevronDown size={14} className={`admin-profile-chevron ${open ? 'open' : ''}`} aria-hidden="true" />
       </button>
 
       {/* Dropdown Menu Card */}

@@ -98,17 +98,22 @@ export function PageHeader({ title, description, action }) {
         {description && <p className="page-header-desc">{description}</p>}
       </div>
       <div className="page-header-right">
-        {action && <div className="page-header-actions">{action}</div>}
-        {isStaff && (
+        {isStaff ? (
           <div className="staff-header-meta">
-            <div className="unified-datetime" aria-label={`Current Manila date and time: ${datePart} ${timePart} PHT`}>
+            <div className="unified-datetime" aria-label={`Current Manila date and time: ${timePart} PHT ${datePart}`}>
+              <div className="datetime-time-row">
+                <strong className="datetime-time">{timePart}</strong>
+                <small className="datetime-tz">PHT</small>
+              </div>
               <span className="datetime-date">{datePart}</span>
-              <span className="datetime-dot" aria-hidden="true">·</span>
-              <strong className="datetime-time">{timePart}</strong>
-              <small className="datetime-tz">PHT</small>
             </div>
-            <UserMenu />
+            <div className="staff-header-profile-column">
+              <UserMenu />
+              {action && <div className="page-header-actions">{action}</div>}
+            </div>
           </div>
+        ) : (
+          action && <div className="page-header-actions">{action}</div>
         )}
       </div>
     </div>

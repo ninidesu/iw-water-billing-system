@@ -24,6 +24,7 @@ import {
 import { CaseAttachment } from '../../components/RequestDocuments.jsx'
 import { supabase } from '../../lib/supabaseClient.js'
 import { EmptyState, Loading, Notice, PageHeader } from '../../components/UI.jsx'
+import Modal from '../../components/Modal.jsx'
 import { dateLabel, errorMessage } from '../../lib/format.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 
@@ -367,11 +368,11 @@ function ConcernsDeskWorkspace({ role, onModified, showIntake, onToggleIntake })
 
           <button
             type="button"
-            className={`button ${showIntake ? 'button-ghost' : ''}`}
+            className="button"
             onClick={onToggleIntake}
             style={{ whiteSpace: 'nowrap' }}
           >
-            {showIntake ? <><X size={16} /> Close Form</> : <><Plus size={16} /> Log Customer Concern</>}
+            <Plus size={16} /> Log Customer Concern
           </button>
 
           <div className="view-switch-icon-only" role="group" aria-label="Table view mode">
@@ -766,69 +767,73 @@ function WalkInConcernModal({ receipt, onCreated, onClose }) {
   }
 
   return (
-    <section className="panel walkin-intake-panel concern-walkin-panel">
-      <div className="panel-heading">
-        <div>
-          <h2><AlertTriangle size={22} /> Log Customer Concern / Field Incident</h2>
-        </div>
-        <button type="button" className="button button-ghost button-small" onClick={onClose}>
-          <X size={16} /> Close
-        </button>
-      </div>
-
-      <div className="walkin-intake-body">
-        {receipt ? (
-          <div className="walkin-receipt-box">
-            <CheckCircle2 size={32} />
-            <div>
-              <h3>Concern / Incident Recorded</h3>
-              <p>Provide these tracking details to the customer:</p>
-              <div className="walkin-codes">
-                <div><span>Incident Ticket No.</span><strong>{receipt.reference_no}</strong></div>
-                <div><span>Secret Tracking Code</span><strong>{receipt.tracking_token}</strong></div>
+    <Modal
+      title="Log Customer Concern"
+      onClose={onClose}
+      className="compact-concern-modal"
+    >
+      {receipt ? (
+        <div className="walkin-receipt-box compact-receipt-box">
+          <CheckCircle2 size={32} className="receipt-success-icon" />
+          <div className="receipt-text-content">
+            <h3>Incident Ticket Recorded</h3>
+            <p>Provide these tracking details to the customer:</p>
+            <div className="walkin-codes compact-codes">
+              <div>
+                <span>Ticket No.</span>
+                <strong>{receipt.reference_no}</strong>
+              </div>
+              <div>
+                <span>Tracking Code</span>
+                <strong>{receipt.tracking_token}</strong>
               </div>
             </div>
-            <button type="button" className="button" onClick={onClose}>Done</button>
           </div>
-        ) : (
-          <form className="form-grid" onSubmit={submit}>
-            <Notice type="error">{error}</Notice>
-            <label>
-              Intake Channel
+          <button type="button" className="button button-sm button-primary" onClick={onClose}>
+            Done
+          </button>
+        </div>
+      ) : (
+        <form className="compact-concern-form" onSubmit={submit}>
+          <Notice type="error">{error}</Notice>
+
+          <div className="compact-concern-grid">
+            <label className="compact-field">
+              <span>Intake Channel</span>
               <select name="channel" defaultValue="walk_in">
-                <option value="walk_in">Walk-In (Counter Desk)</option>
-                <option value="phone">Hotline Phone Call</option>
+                <option value="walk_in">Walk-In (Counter)</option>
+                <option value="phone">Hotline Phone</option>
                 <option value="email">Email Report</option>
                 <option value="other">Other Channel</option>
               </select>
             </label>
 
-            <label>
-              Incident Category
+            <label className="compact-field">
+              <span>Incident Category</span>
               <select name="category" defaultValue="leak">
-                <option value="leak">💧 Pipe Leak / Burst Main</option>
+                <option value="leak">💧 Pipe Leak / Burst</option>
                 <option value="water_service">🚰 No Water / Low Pressure</option>
-                <option value="billing">🧾 Billing Inquiry / Dispute</option>
-                <option value="payment">💳 Payment / Receipt Concern</option>
+                <option value="billing">🧾 Billing Dispute</option>
+                <option value="payment">💳 Payment / Receipt</option>
                 <option value="meter">⏱️ Defective Meter</option>
-                <option value="account">🔄 Reconnection / Disconnection</option>
+                <option value="account">🔄 Reconnection / Cutoff</option>
                 <option value="general">💬 General Inquiry</option>
                 <option value="other">❓ Other Concern</option>
               </select>
             </label>
 
-            <label>
-              Customer / Reporter Name (optional)
+            <label className="compact-field">
+              <span>Reporter Name <small>(optional)</small></span>
               <input name="name" maxLength="160" placeholder="e.g. Maria Santos" />
             </label>
 
-            <label>
-              Contact Number
+            <label className="compact-field">
+              <span>Contact Number</span>
               <input name="phone" type="tel" maxLength="40" placeholder="09XX XXX XXXX" />
             </label>
 
-            <label>
-              Claimed 9-Digit CAN (optional)
+            <label className="compact-field">
+              <span>Claimed 9-Digit CAN <small>(optional)</small></span>
               <input
                 name="can"
                 inputMode="numeric"
@@ -838,37 +843,42 @@ function WalkInConcernModal({ receipt, onCreated, onClose }) {
               />
             </label>
 
-            <label>
-              Incident Location / Landmark
+            <label className="compact-field">
+              <span>Location / Landmark</span>
               <input
                 name="location"
                 maxLength="500"
-                placeholder="Corner Street, near landmark"
+                placeholder="Corner street, landmark"
               />
             </label>
 
-            <label className="span-2">
-              Detailed Incident Statement
+            <label className="compact-field span-full">
+              <span>Detailed Incident Statement <strong className="req-star">*</strong></span>
               <textarea
                 name="description"
                 required
-                rows="3"
+                rows="2"
                 maxLength="2700"
                 placeholder="Describe the issue reported..."
               />
             </label>
+          </div>
 
-            <div className="form-actions span-2">
-              <button type="button" className="button button-ghost" disabled={busy} onClick={onClose}>
-                Cancel
-              </button>
-              <button className="button" disabled={busy}>
-                {busy ? 'Logging Incident…' : 'Log Incident Ticket'}
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-    </section>
+          <div className="compact-form-actions">
+            <button
+              type="button"
+              className="button button-ghost button-sm"
+              disabled={busy}
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button className="button button-primary button-sm" disabled={busy}>
+              {busy ? 'Logging…' : 'Log Incident Ticket'}
+            </button>
+          </div>
+        </form>
+      )}
+    </Modal>
   )
 }

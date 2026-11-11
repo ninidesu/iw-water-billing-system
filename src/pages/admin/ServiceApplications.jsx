@@ -24,6 +24,7 @@ import ConnectionOffer from '../../components/ConnectionOffer.jsx'
 import RequestDocuments from '../../components/RequestDocuments.jsx'
 import { supabase } from '../../lib/supabaseClient.js'
 import { EmptyState, Loading, Notice, PageHeader } from '../../components/UI.jsx'
+import Modal from '../../components/Modal.jsx'
 import { dateLabel, errorMessage, formatApplicationRef } from '../../lib/format.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 
@@ -313,11 +314,11 @@ function ApplicationPipelineWorkspace({ role, onModified, showIntake, onToggleIn
 
           <button
             type="button"
-            className={`button ${showIntake ? 'button-ghost' : ''}`}
+            className="button"
             onClick={onToggleIntake}
             style={{ whiteSpace: 'nowrap' }}
           >
-            {showIntake ? <><X size={16} /> Close Form</> : <><Plus size={16} /> Record New Application</>}
+            <Plus size={16} /> Record New Application
           </button>
 
           <div className="view-switch-icon-only" role="group" aria-label="Table view mode">
@@ -364,7 +365,6 @@ function ApplicationPipelineWorkspace({ role, onModified, showIntake, onToggleIn
                   <th>Ref No.</th>
                   <th>Applicant</th>
                   <th>Type</th>
-                  <th>Service Address</th>
                   <th>Channel</th>
                   <th>Status</th>
                   <th>Date</th>
@@ -387,7 +387,6 @@ function ApplicationPipelineWorkspace({ role, onModified, showIntake, onToggleIn
                       <td><span className="request-ref-code">{formatApplicationRef(row.reference_no)}</span></td>
                       <td><strong>{row.applicant_name || 'Walk-In'}</strong></td>
                       <td><span className={`prop-badge prop-${propType.toLowerCase()}`}>{propType}</span></td>
-                      <td>{row.service_address || '—'}</td>
                       <td><span className={`channel-tag channel-${row.channel || 'online'}`}>{channelLabel(row.channel)}</span></td>
                       <td><span className={`status-badge ${statusTone(row.status)}`}>{row.status.replaceAll('_', ' ')}</span></td>
                       <td>{dateLabel(row.updated_at)}</td>
@@ -430,7 +429,6 @@ function ApplicationPipelineWorkspace({ role, onModified, showIntake, onToggleIn
                   <tr>
                     <th>Ref No.</th>
                     <th>Applicant</th>
-                    <th>Address</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -451,11 +449,8 @@ function ApplicationPipelineWorkspace({ role, onModified, showIntake, onToggleIn
                           <span className="request-ref-code">{formatApplicationRef(row.reference_no)}</span>
                         </td>
                         <td>
-                          <strong className="app-table-applicant-name">{row.applicant_name || 'Walk-In'}</strong>
-                        </td>
-                        <td>
-                          <span className="app-table-addr" title={row.service_address}>
-                            {row.service_address || '—'}
+                          <span className="app-table-applicant-name" title={row.applicant_name || 'Walk-In'}>
+                            {row.applicant_name || 'Walk-In'}
                           </span>
                         </td>
                         <td>
@@ -792,35 +787,39 @@ function WalkInApplicationModal({ receipt, onCreated, onClose }) {
   }
 
   return (
-    <section className="panel walkin-intake-panel app-walkin-panel">
-      <div className="panel-heading">
-        <div>
-          <h2><ClipboardList size={22} /> New Connection Application Intake</h2>
-        </div>
-        <button type="button" className="button button-ghost button-small" onClick={onClose}>
-          <X size={16} /> Close
-        </button>
-      </div>
-
-      <div className="walkin-intake-body">
-        {receipt ? (
-          <div className="walkin-receipt-box">
-            <CheckCircle2 size={32} />
-            <div>
-              <h3>Water Service Application Recorded</h3>
-              <p>Provide these tracking details to the applicant:</p>
-              <div className="walkin-codes">
-                <div><span>Application Reference</span><strong>{formatApplicationRef(receipt.reference_no)}</strong></div>
-                <div><span>Secret Tracking Code</span><strong>{receipt.tracking_token}</strong></div>
+    <Modal
+      title="Record New Service Application"
+      onClose={onClose}
+      className="compact-concern-modal"
+    >
+      {receipt ? (
+        <div className="walkin-receipt-box compact-receipt-box">
+          <CheckCircle2 size={32} className="receipt-success-icon" />
+          <div className="receipt-text-content">
+            <h3>Water Service Application Recorded</h3>
+            <p>Provide these tracking details to the applicant:</p>
+            <div className="walkin-codes compact-codes">
+              <div>
+                <span>Application Ref</span>
+                <strong>{formatApplicationRef(receipt.reference_no)}</strong>
+              </div>
+              <div>
+                <span>Tracking Code</span>
+                <strong>{receipt.tracking_token}</strong>
               </div>
             </div>
-            <button type="button" className="button" onClick={onClose}>Done</button>
           </div>
-        ) : (
-          <form className="form-grid" onSubmit={submit}>
-            <Notice type="error">{error}</Notice>
-            <label>
-              Intake Channel
+          <button type="button" className="button button-sm button-primary" onClick={onClose}>
+            Done
+          </button>
+        </div>
+      ) : (
+        <form className="compact-concern-form" onSubmit={submit}>
+          <Notice type="error">{error}</Notice>
+
+          <div className="compact-concern-grid">
+            <label className="compact-field">
+              <span>Intake Channel</span>
               <select name="channel" defaultValue="walk_in">
                 <option value="walk_in">Walk-In (Office Counter)</option>
                 <option value="phone">Hotline / Phone Call</option>
@@ -829,8 +828,8 @@ function WalkInApplicationModal({ receipt, onCreated, onClose }) {
               </select>
             </label>
 
-            <label>
-              Property Classification
+            <label className="compact-field">
+              <span>Property Classification</span>
               <select name="type" defaultValue="Residential">
                 <option value="Residential">Residential</option>
                 <option value="Commercial">Commercial</option>
@@ -838,18 +837,18 @@ function WalkInApplicationModal({ receipt, onCreated, onClose }) {
               </select>
             </label>
 
-            <label>
-              Applicant Full Name
+            <label className="compact-field">
+              <span>Applicant Full Name <strong className="req-star">*</strong></span>
               <input name="name" required maxLength="160" placeholder="e.g. Juan dela Cruz" />
             </label>
 
-            <label>
-              Mobile / Contact Number
+            <label className="compact-field">
+              <span>Mobile / Contact No. <strong className="req-star">*</strong></span>
               <input name="phone" type="tel" required maxLength="40" placeholder="09XX XXX XXXX" />
             </label>
 
-            <label className="span-2">
-              Installation Service Address
+            <label className="compact-field span-full">
+              <span>Installation Service Address <strong className="req-star">*</strong></span>
               <input
                 name="address"
                 required
@@ -858,27 +857,32 @@ function WalkInApplicationModal({ receipt, onCreated, onClose }) {
               />
             </label>
 
-            <label>
-              Email Address (optional)
+            <label className="compact-field">
+              <span>Email Address <small>(optional)</small></span>
               <input name="email" type="email" maxLength="254" placeholder="applicant@example.com" />
             </label>
 
-            <label>
-              Nearest Landmark / Notes
+            <label className="compact-field">
+              <span>Landmark / Notes <small>(optional)</small></span>
               <input name="notes" maxLength="500" placeholder="e.g. Beside church, yellow gate" />
             </label>
+          </div>
 
-            <div className="form-actions span-2">
-              <button type="button" className="button button-ghost" disabled={busy} onClick={onClose}>
-                Cancel
-              </button>
-              <button className="button" disabled={busy}>
-                {busy ? 'Registering Application…' : 'Save Connection Application'}
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-    </section>
+          <div className="compact-form-actions">
+            <button
+              type="button"
+              className="button button-ghost button-sm"
+              disabled={busy}
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button className="button button-primary button-sm" disabled={busy}>
+              {busy ? 'Registering…' : 'Save Connection Application'}
+            </button>
+          </div>
+        </form>
+      )}
+    </Modal>
   )
 }

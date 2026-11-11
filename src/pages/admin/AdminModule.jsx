@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Activity,
   Building2,
   Calendar,
   CheckCircle2,
+  ClipboardList,
   Eye,
   FileSpreadsheet,
   Layout,
@@ -24,145 +25,265 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useAdminData } from '../../hooks/useAdminData.js'
-import { dateLabel, errorMessage, peso } from '../../lib/format.js'
+import { dateLabel, errorMessage, formatApplicationRef, monthLabel, peso } from '../../lib/format.js'
 import { usePreferences } from '../../lib/preferences.js'
 import { supabase } from '../../lib/supabaseClient.js'
 import { EmptyState, Loading, Notice, PageHeader } from '../../components/UI.jsx'
-import { TableEmptyRows } from '../../components/TablePagination.jsx'
+import TablePagination, { TableEmptyRows, useTablePagination } from '../../components/TablePagination.jsx'
 import StatCard from '../../components/StatCard.jsx'
 import StatusBadge from '../../components/StatusBadge.jsx'
 
+function timeLabel(value) {
+  if (!value) return ''
+  try {
+    const d = new Date(value)
+    if (isNaN(d.getTime())) return ''
+    return new Intl.DateTimeFormat('en-PH', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Manila',
+    }).format(d)
+  } catch {
+    return ''
+  }
+}
+
 export default function AdminModule({ module }) {
   const { data, loading, error, refresh } = useAdminData()
-  const [roleFilter, setRoleFilter] = useState('all')
-  const [search, setSearch] = useState('')
 
   if (module === 'usersAudit') {
-    const profiles = data?.profiles || []
-    const payments = data?.payments || []
-    const bills = data?.bills || []
+    return <UsersAuditView data={data} loading={loading} error={error} refresh={refresh} />
+  }
 
-    const staffProfiles = profiles.filter((p) => p.role === 'admin' || p.role === 'cashier')
+  if (module === 'settings') {
+    return <AdminSettingsView data={data} refresh={refresh} />
+  }
 
-    const staffList = staffProfiles.filter((p) => {
+  return (
+    <div className="page-content">
+      <PageHeader title="Adjustments" />
+      <section className="panel" style={{ padding: '22px' }}>
+        <EmptyState title="Select a customer bill in Statements of Account (SOA) or Customer Accounts to record an adjustment." />
+      </section>
+    </div>
+  )
+}
+
+function UsersAuditView({ data, loading, error, refresh }) {
+  const [activeTab, setActiveTab] = useState('staff')
+  const [roleFilter, setRoleFilter] = useState('all')
+  const [search, setSearch] = useState('')
+  const [activitySearch, setActivitySearch] = useState('')
+  const [activityFilter, setActivityFilter] = useState('all')
+
+  const profiles = data?.profiles || []
+  const payments = data?.payments || []
+  const bills = data?.bills || []
+  const customers = data?.customers || []
+  const applications = data?.applications || []
+
+  const staffProfiles = useMemo(
+    () => profiles.filter((p) => p.role === 'admin' || p.role === 'cashier'),
+    [profiles]
+  )
+
+  const staffList = useMemo(() => {
+    return staffProfiles.filter((p) => {
       if (roleFilter !== 'all' && p.role !== roleFilter) return false
       if (search.trim() && !`${p.full_name || ''} ${p.email || ''} ${p.role || ''}`.toLowerCase().includes(search.toLowerCase())) {
         return false
       }
       return true
     })
+  }, [staffProfiles, roleFilter, search])
 
-    const adminCount = profiles.filter((p) => p.role === 'admin').length
-    const cashierCount = profiles.filter((p) => p.role === 'cashier').length
-    const customerProfilesCount = profiles.filter((p) => p.role === 'customer').length
+  const staffPagination = useTablePagination(staffList, 10, [search, roleFilter])
 
-    // Recent audit trail derived from recent payments & bills
-    const profileMap = new Map(profiles.map((p) => [p.id, p]))
-    const auditEvents = [
-      ...payments.slice(0, 10).map((p) => ({
-        id: `pay-${p.id}`,
-        date: p.paid_at,
-        actor: profileMap.get(p.collected_by)?.full_name || 'Cashier Staff',
-        actorRole: 'cashier',
-        action: 'Posted Payment',
-        detail: `${peso(p.amount)} · ${p.method || 'Cash'}${p.reference_no ? ` · Ref: ${p.reference_no}` : ''}`,
-      })),
-      ...bills.slice(0, 8).map((b) => ({
-        id: `bill-${b.id}`,
-        date: b.created_at,
-        actor: 'Billing Staff',
-        actorRole: 'admin',
-        action: 'Issued Bill',
-        detail: `${b.bill_no} · ${peso(b.amount)}`,
-      })),
+  const adminCount = useMemo(() => profiles.filter((p) => p.role === 'admin').length, [profiles])
+  const cashierCount = useMemo(() => profiles.filter((p) => p.role === 'cashier').length, [profiles])
+  const customerProfilesCount = useMemo(() => profiles.filter((p) => p.role === 'customer').length, [profiles])
+
+  const customerMap = useMemo(() => new Map(customers.map((c) => [c.id, c.full_name])), [customers])
+  const profileMap = useMemo(() => new Map(profiles.map((p) => [p.id, p])), [profiles])
+
+  const auditEvents = useMemo(() => {
+    const list = [
+      ...payments.map((p) => {
+        const staff = profileMap.get(p.collected_by)
+        const staffName = staff?.full_name || 'Cashier Staff'
+        const initials = staffName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+        return {
+          id: `pay-${p.id}`,
+          date: p.paid_at,
+          type: 'payment',
+          action: 'Posted Payment',
+          reference: p.or_number || p.reference_no || `PAY-${p.id}`,
+          party: customerMap.get(p.customer_id) || 'Consumer Account',
+          detail: `${peso(p.amount)} · ${p.method || 'Cash'}`,
+          actor: staffName,
+          actorRole: staff?.role || 'cashier',
+          actorInitials: initials || 'CS',
+          status: p.status || 'completed',
+        }
+      }),
+      ...bills.map((b) => {
+        const staff = profiles.find((p) => p.role === 'admin')
+        const staffName = staff?.full_name || 'Billing Staff'
+        const initials = staffName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+        return {
+          id: `bill-${b.id}`,
+          date: b.created_at,
+          type: 'bill',
+          action: 'Issued Bill',
+          reference: b.bill_no || `BILL-${b.id}`,
+          party: customerMap.get(b.customer_id) || 'Consumer Account',
+          detail: `${peso(b.amount)} · ${b.billing_month ? monthLabel(b.billing_month) : 'Water Charge'}`,
+          actor: staffName,
+          actorRole: 'admin',
+          actorInitials: initials || 'BS',
+          status: b.status || 'issued',
+        }
+      }),
+      ...applications.map((app) => {
+        return {
+          id: `app-${app.id}`,
+          date: app.created_at,
+          type: 'application',
+          action: 'New Application',
+          reference: formatApplicationRef(app.reference_no),
+          party: app.applicant_name || 'Walk-In Applicant',
+          detail: app.notes || 'Service Request',
+          actor: 'Customer Portal',
+          actorRole: 'portal',
+          actorInitials: 'CP',
+          status: app.status || 'submitted',
+        }
+      }),
     ]
-      .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
-      .slice(0, 12)
+    return list.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
+  }, [payments, bills, applications, profiles, customers, customerMap, profileMap])
 
-    return (
-      <div className="page-content users-audit-page">
-        <PageHeader title="Users & Audit Logs" />
-        <Notice type="error">{error}</Notice>
-        {loading && !data ? (
-          <Loading />
-        ) : (
-          <>
-            {/* KPI Cards Row - Matches other tabs */}
-            <div className="kpi-stats-grid kpi-stats-grid-3">
-              <div className="stat-card">
-                <div className="stat-top-info">
-                  <span className="stat-label">Administrators & Cashiers</span>
-                  <span className="stat-subtext">
-                    {adminCount} Admin{adminCount === 1 ? '' : 's'} · {cashierCount} Cashier{cashierCount === 1 ? '' : 's'}
-                  </span>
-                </div>
-                <strong className="stat-value-bottom-right">{adminCount + cashierCount}</strong>
-              </div>
+  const filteredEvents = useMemo(() => {
+    return auditEvents.filter((ev) => {
+      if (activityFilter !== 'all' && ev.type !== activityFilter) return false
+      if (activitySearch.trim()) {
+        const q = activitySearch.toLowerCase()
+        const text = `${ev.action} ${ev.reference} ${ev.party} ${ev.actor} ${ev.detail} ${ev.status}`.toLowerCase()
+        if (!text.includes(q)) return false
+      }
+      return true
+    })
+  }, [auditEvents, activityFilter, activitySearch])
 
-              <div className="stat-card">
-                <div className="stat-top-info">
-                  <span className="stat-label">Online Customer Accounts</span>
-                  <span className="stat-subtext">
-                    {customerProfilesCount === 0 ? 'No registered consumers' : 'Portal-registered consumers'}
-                  </span>
-                </div>
-                <strong className="stat-value-bottom-right">{customerProfilesCount}</strong>
-              </div>
+  const activityPagination = useTablePagination(filteredEvents, 10, [activitySearch, activityFilter])
 
-              <div className="stat-card">
-                <div className="stat-top-info">
-                  <span className="stat-label">Recent System Events</span>
-                  <span className="stat-subtext">Payments & bill issuances</span>
-                </div>
-                <strong className="stat-value-bottom-right">{auditEvents.length}</strong>
+  return (
+    <div className="page-content users-audit-page">
+      <PageHeader title="Users & Audit Logs" />
+      <Notice type="error">{error}</Notice>
+      {loading && !data ? (
+        <Loading />
+      ) : (
+        <>
+          {/* KPI Cards Row - Matches other tabs */}
+          <div className="kpi-stats-grid kpi-stats-grid-3">
+            <div className="stat-card">
+              <div className="stat-top-info">
+                <span className="stat-label">Administrators & Cashiers</span>
+                <span className="stat-subtext">
+                  {adminCount} Admin{adminCount === 1 ? '' : 's'} · {cashierCount} Cashier{cashierCount === 1 ? '' : 's'}
+                </span>
               </div>
+              <strong className="stat-value-bottom-right">{adminCount + cashierCount}</strong>
             </div>
 
-            {/* Split Tables Container */}
-            <div className="audit-split-grid">
-              {/* Left Panel: Directory of System Users */}
-              <section className="panel audit-panel">
-                <div className="audit-panel-head">
-                  <div>
-                    <h2>Directory of Staff Accounts</h2>
-                    <p>System administrators and counter cashiers</p>
-                  </div>
-                  <span className="audit-count-pill">
-                    {staffList.length} staff member{staffList.length === 1 ? '' : 's'}
-                  </span>
-                </div>
+            <div className="stat-card">
+              <div className="stat-top-info">
+                <span className="stat-label">Online Customer Accounts</span>
+                <span className="stat-subtext">
+                  {customerProfilesCount === 0 ? 'No registered consumers' : 'Portal-registered consumers'}
+                </span>
+              </div>
+              <strong className="stat-value-bottom-right">{customerProfilesCount}</strong>
+            </div>
 
-                <div className="audit-toolbar">
-                  <div className="audit-search-field">
-                    <Search size={15} />
-                    <input
-                      type="search"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search staff by name, role, email..."
-                    />
-                  </div>
-                  <div className="mf-segmented-tabs" role="tablist">
-                    {[
-                      ['all', 'All Staff'],
-                      ['admin', 'Admin'],
-                      ['cashier', 'Cashier'],
-                    ].map(([val, label]) => (
-                      <button
-                        key={val}
-                        type="button"
-                        className={roleFilter === val ? 'active' : ''}
-                        onClick={() => setRoleFilter(val)}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            <div className="stat-card">
+              <div className="stat-top-info">
+                <span className="stat-label">Recent System Events</span>
+                <span className="stat-subtext">Payments & bill issuances</span>
+              </div>
+              <strong className="stat-value-bottom-right">{auditEvents.length}</strong>
+            </div>
+          </div>
 
-                {staffList.length ? (
+          {/* Toggle Switcher: Display One Table Only at a Time */}
+          <div className="audit-toggle-bar">
+            <div className="view-switch" role="tablist" aria-label="Table view switcher">
+              <button
+                type="button"
+                className={activeTab === 'staff' ? 'active' : ''}
+                onClick={() => setActiveTab('staff')}
+              >
+                <Users size={16} /> Directory of Staff Accounts
+                <span className="audit-switch-count">{staffProfiles.length}</span>
+              </button>
+              <button
+                type="button"
+                className={activeTab === 'activity' ? 'active' : ''}
+                onClick={() => setActiveTab('activity')}
+              >
+                <Activity size={16} /> Recent Activity Log
+                <span className="audit-switch-count">{auditEvents.length}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Display One Table/Panel at a Time */}
+          {activeTab === 'staff' ? (
+            <section className="panel audit-panel audit-panel-full">
+              <div className="audit-panel-head">
+                <div>
+                  <h2>Directory of Staff Accounts</h2>
+                  <p>System administrators and counter cashiers</p>
+                </div>
+                <span className="audit-count-pill">
+                  {staffList.length} staff member{staffList.length === 1 ? '' : 's'}
+                </span>
+              </div>
+
+              <div className="audit-toolbar">
+                <div className="audit-search-field">
+                  <Search size={15} />
+                  <input
+                    type="search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search staff by name, role, email..."
+                  />
+                </div>
+                <div className="mf-segmented-tabs" role="tablist">
+                  {[
+                    ['all', 'All Staff'],
+                    ['admin', 'Admin'],
+                    ['cashier', 'Cashier'],
+                  ].map(([val, label]) => (
+                    <button
+                      key={val}
+                      type="button"
+                      className={roleFilter === val ? 'active' : ''}
+                      onClick={() => setRoleFilter(val)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {staffList.length ? (
+                <>
                   <div className="table-scroll audit-table-wrap">
-                    <table className="audit-clean-table">
+                    <table className="audit-clean-table staff-directory-table">
                       <thead>
                         <tr>
                           <th>Account Name</th>
@@ -171,7 +292,7 @@ export default function AdminModule({ module }) {
                         </tr>
                       </thead>
                       <tbody>
-                        {staffList.slice(0, 14).map((u) => {
+                        {staffPagination.visibleRows.map((u) => {
                           const initials = (u.full_name || u.role || 'U')
                             .split(' ')
                             .map((w) => w[0])
@@ -203,67 +324,138 @@ export default function AdminModule({ module }) {
                             </tr>
                           )
                         })}
+                        <TableEmptyRows count={staffPagination.emptyRowsCount} colSpan={3} />
                       </tbody>
                     </table>
                   </div>
-                ) : (
-                  <EmptyState title="No matching accounts" description="Try clearing your search query or role filter." />
-                )}
-              </section>
-
-              {/* Right Panel: Activity Audit Stream */}
-              <section className="panel audit-panel">
-                <div className="audit-panel-head">
-                  <div>
-                    <h2>Recent Activity Log</h2>
-                    <p>Live transaction stream and operations audit trail</p>
-                  </div>
+                  <TablePagination {...staffPagination} total={staffList.length} />
+                </>
+              ) : (
+                <EmptyState title="No matching accounts" description="Try clearing your search query or role filter." />
+              )}
+            </section>
+          ) : (
+            <section className="panel audit-panel audit-panel-full">
+              <div className="audit-panel-head">
+                <div>
+                  <h2>Recent Activity Log</h2>
+                  <p>Live transaction stream and operations audit trail</p>
+                </div>
+                <div className="audit-panel-head-tags">
+                  <span className="audit-count-pill">
+                    {filteredEvents.length} event{filteredEvents.length === 1 ? '' : 's'}
+                  </span>
                   <span className="audit-pulse-live">
                     <i /> Live Feed
                   </span>
                 </div>
+              </div>
 
-                {auditEvents.length ? (
-                  <div className="audit-timeline-feed">
-                    {auditEvents.map((ev) => (
-                      <div key={ev.id} className="audit-event-item">
-                        <span className={`audit-event-icon ${ev.actorRole === 'cashier' ? 'tone-payment' : 'tone-bill'}`}>
-                          {ev.actorRole === 'cashier' ? <Wallet size={15} /> : <FileSpreadsheet size={15} />}
-                        </span>
-                        <div className="audit-event-main">
-                          <div className="audit-event-title-row">
-                            <strong>{ev.action}</strong>
-                            <small className="audit-event-date">{dateLabel(ev.date)}</small>
-                          </div>
-                          <p className="audit-event-detail">{ev.detail}</p>
-                          <span className="audit-event-actor">
-                            Logged by <em>{ev.actor}</em>
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+              <div className="audit-toolbar">
+                <div className="audit-search-field">
+                  <Search size={15} />
+                  <input
+                    type="search"
+                    value={activitySearch}
+                    onChange={(e) => setActivitySearch(e.target.value)}
+                    placeholder="Search activity by ref no, customer, staff, or action..."
+                  />
+                </div>
+                <div className="mf-segmented-tabs" role="tablist">
+                  {[
+                    ['all', 'All Activities'],
+                    ['payment', 'Payments'],
+                    ['bill', 'Bills'],
+                    ['application', 'Applications'],
+                  ].map(([val, label]) => (
+                    <button
+                      key={val}
+                      type="button"
+                      className={activityFilter === val ? 'active' : ''}
+                      onClick={() => setActivityFilter(val)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {filteredEvents.length ? (
+                <>
+                  <div className="table-scroll audit-table-wrap">
+                    <table className="audit-clean-table activity-log-table">
+                      <thead>
+                        <tr>
+                          <th>Timestamp</th>
+                          <th>Event / Action</th>
+                          <th>Reference No.</th>
+                          <th>Customer / Account</th>
+                          <th>Activity Details</th>
+                          <th>Logged By</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activityPagination.visibleRows.map((ev) => (
+                          <tr key={ev.id}>
+                            <td>
+                              <div className="activity-timestamp-cell">
+                                <strong>{dateLabel(ev.date)}</strong>
+                                {timeLabel(ev.date) && <small>{timeLabel(ev.date)}</small>}
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`activity-pill activity-${ev.type}`}>
+                                {ev.type === 'payment' ? (
+                                  <Wallet size={13} />
+                                ) : ev.type === 'bill' ? (
+                                  <FileSpreadsheet size={13} />
+                                ) : (
+                                  <ClipboardList size={13} />
+                                )}
+                                {ev.action}
+                              </span>
+                            </td>
+                            <td>
+                              <span className="request-ref-code">{ev.reference}</span>
+                            </td>
+                            <td>
+                              <strong className="activity-party-text">{ev.party}</strong>
+                            </td>
+                            <td>
+                              <span className="activity-detail-text">{ev.detail}</span>
+                            </td>
+                            <td>
+                              <div className="audit-user-cell-compact">
+                                <span className={`audit-user-avatar audit-user-avatar-sm role-${ev.actorRole}`}>
+                                  {ev.actorInitials}
+                                </span>
+                                <span className="audit-actor-name">{ev.actor}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span className="audit-status-badge">
+                                <i className="status-dot-active" /> Completed
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                        <TableEmptyRows count={activityPagination.emptyRowsCount} colSpan={7} />
+                      </tbody>
+                    </table>
                   </div>
-                ) : (
-                  <EmptyState title="No recent activity" description="Activity will appear automatically as bills and payments are processed." />
-                )}
-              </section>
-            </div>
-          </>
-        )}
-      </div>
-    )
-  }
-
-  if (module === 'settings') {
-    return <AdminSettingsView data={data} refresh={refresh} />
-  }
-
-  return (
-    <div className="page-content">
-      <PageHeader title="Adjustments" />
-      <section className="panel" style={{ padding: '22px' }}>
-        <EmptyState title="Select a customer bill in Statements of Account (SOA) or Customer Accounts to record an adjustment." />
-      </section>
+                  <TablePagination {...activityPagination} total={filteredEvents.length} />
+                </>
+              ) : (
+                <EmptyState
+                  title="No matching activity events"
+                  description="Try clearing your search query or switching event filter tabs."
+                />
+              )}
+            </section>
+          )}
+        </>
+      )}
     </div>
   )
 }

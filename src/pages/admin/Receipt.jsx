@@ -73,7 +73,7 @@ export default function Receipt() {
       <div className="print-toolbar">
         <div>
           <Link to={base === '/admin' ? '/admin/collections' : '/cashier/collection'} className="button button-ghost">
-            <ArrowLeft size={17}/> Back to collection
+            <ArrowLeft size={17}/> {base === '/admin' ? 'Back to collections' : 'Back to Payment Counter'}
           </Link>
           <p className="print-toolbar-hint">
             Format: <strong>{paperSize === '58mm' ? '58mm Roll' : paperSize === 'a4' ? 'A4 / Letter Voucher' : '80mm Roll'}</strong> · Copies: <strong>{copyList.join(' & ')}</strong>
