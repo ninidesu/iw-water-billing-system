@@ -159,10 +159,13 @@ export default function RatesCharges() {
                 </div>
               </div>
 
-              <div className="calc-input-block">
-                <label className="compact-field">
-                  <span>Sample Consumption <span className="label-unit">(m³)</span></span>
+              <div className="calc-input-row">
+                <label className="calc-input-label" htmlFor="sample-calc-consumption">
+                  Sample Consumption
+                </label>
+                <div className="calc-input-wrap">
                   <input
+                    id="sample-calc-consumption"
                     type="number"
                     min="0"
                     step="0.01"
@@ -170,7 +173,8 @@ export default function RatesCharges() {
                     onChange={(e) => setUsage(e.target.value)}
                     placeholder="20"
                   />
-                </label>
+                  <span className="calc-unit-tag">m³</span>
+                </div>
               </div>
 
               <div className="calc-breakdown-table">
