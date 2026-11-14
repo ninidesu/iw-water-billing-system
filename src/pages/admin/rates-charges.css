@@ -1,0 +1,206 @@
+.rates-dashboard {
+  container: rates / inline-size;
+  --rates-gap: clamp(14px, 2cqi, 24px);
+}
+
+.rates-dashboard .staff-header-meta {
+  flex-wrap: wrap;
+}
+
+.rates-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--rates-gap);
+  margin-block: var(--rates-gap);
+}
+
+.rates-dashboard .rates-card {
+  min-width: 0;
+  padding: var(--rates-gap);
+  color: var(--staff-ink);
+  background: var(--staff-panel);
+  border-color: var(--staff-border);
+}
+
+.rates-card-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.rates-heading-icon {
+  flex: 0 0 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--staff-accent-soft);
+}
+
+.rates-card-heading h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.rates-card-heading p,
+.rates-total small {
+  margin: 2px 0 0;
+  color: var(--staff-muted);
+  font-size: 13px;
+}
+
+.rates-current {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 8px 16px;
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--staff-accent);
+  color: #fff;
+}
+
+.rates-current span,
+.rates-current small {
+  font-size: 12px;
+}
+
+.rates-current strong {
+  display: block;
+  font-size: clamp(19px, 2.5cqi, 28px);
+  overflow-wrap: anywhere;
+}
+
+.rates-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.rates-form-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rates-dashboard :is(.rates-form, .rates-usage-row) label {
+  color: var(--staff-ink);
+  font-size: 13px;
+}
+
+.rates-dashboard :is(.rates-form, .rates-usage-row) input {
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--staff-border);
+  border-radius: 8px;
+  background: var(--staff-field);
+  color: var(--staff-ink);
+}
+
+.rates-form .button {
+  justify-self: end;
+}
+
+.rates-usage-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.rates-usage-row input {
+  width: min(100%, 130px);
+}
+
+.rates-breakdown {
+  margin: 0;
+  border: 1px solid var(--staff-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.rates-breakdown > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 9px 12px;
+  font-size: 13px;
+}
+
+.rates-breakdown > div + div {
+  border-top: 1px solid var(--staff-border);
+}
+
+.rates-breakdown dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: end;
+}
+
+.rates-breakdown .rates-total {
+  align-items: center;
+  background: var(--staff-accent-soft);
+  font-weight: 700;
+}
+
+.rates-total small {
+  display: block;
+  font-weight: 400;
+}
+
+.rates-total dd {
+  font-size: clamp(16px, 2cqi, 22px);
+  overflow-wrap: anywhere;
+}
+
+.rates-history-scroll table {
+  min-width: 43rem;
+}
+
+.rates-history .table-pagination {
+  margin-top: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rates-history .table-pagination :is(.pagination-left, .pagination-controls) {
+  flex-wrap: wrap;
+}
+
+.rates-history-scroll:focus-visible {
+  outline-offset: -3px;
+}
+
+.rates-history-reason {
+  min-width: 12rem;
+  overflow-wrap: anywhere;
+}
+
+.rates-history .rates-history-rate strong {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--staff-accent-soft);
+  color: var(--staff-ink);
+}
+
+@container rates (max-width: 800px) {
+  .rates-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container rates (max-width: 460px) {
+  .rates-form-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rates-form .button {
+    width: 100%;
+  }
+}

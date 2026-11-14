@@ -1,0 +1,134 @@
+.concern-desk-management {
+  container: concerns / inline-size;
+}
+
+.concern-desk-management .staff-header-meta {
+  flex-wrap: wrap;
+}
+
+.concern-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.concern-summary .concern-metric {
+  display: grid;
+  align-content: space-between;
+  gap: 8px;
+  min-height: 96px;
+  padding: 14px 16px;
+  border: 1px solid var(--staff-border);
+  background: var(--staff-panel);
+  color: var(--staff-ink);
+  text-align: start;
+}
+
+.concern-summary .concern-metric:hover,
+.concern-summary .concern-metric[aria-pressed='true'] {
+  background: var(--staff-accent-soft);
+}
+
+.concern-summary .concern-metric[aria-pressed='true'] {
+  border-color: var(--staff-muted);
+  box-shadow: inset 0 3px var(--staff-muted);
+}
+
+.concern-metric .stat-label,
+.concern-metric .stat-subtext {
+  display: block;
+  color: var(--staff-muted);
+}
+
+.concern-metric .stat-value-bottom-right {
+  justify-self: end;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.concern-desk-management .concern-filter-bar {
+  padding: 14px;
+}
+
+.concern-desk-management .concern-filter-bar :is(.incident-category-chips, .request-subfilters) {
+  flex-wrap: wrap !important;
+  overflow: visible !important;
+  gap: 8px !important;
+}
+
+.concern-desk-management .concern-filter-bar .cat-chip {
+  min-height: 36px;
+  background: var(--staff-field);
+  color: var(--staff-ink);
+  border-color: var(--staff-border);
+}
+
+.concern-desk-management .concern-filter-bar .cat-chip.active {
+  background: var(--staff-accent);
+  color: #fff;
+  border-color: var(--staff-accent);
+}
+
+.concern-desk-management .concern-filter-bar .request-subfilters .request-search-field {
+  min-width: 0 !important;
+  flex-basis: 240px !important;
+}
+
+.concern-desk-management .concern-filter-bar .request-search-field input {
+  min-width: 0;
+}
+
+.concern-desk-management .concern-empty {
+  text-align: center;
+  padding-bottom: 16px;
+}
+
+.concern-desk-management .concern-empty .button {
+  margin-inline: auto;
+}
+
+.concern-desk-management .concern-split-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) !important;
+}
+
+.concern-split-workspace > * {
+  min-width: 0;
+}
+
+.staff-shell[data-staff-theme='dark'] .concern-desk-management .concern-metric[aria-pressed='true'],
+.staff-shell[data-staff-theme='dark'] .concern-desk-management .concern-metric:hover {
+  background: #243d59;
+}
+
+.staff-shell[data-staff-theme='dark'] .concern-desk-management :is(.compact-info-card, .compact-note-field textarea) {
+  background: var(--staff-field);
+  border-color: var(--staff-border);
+  color: var(--staff-ink);
+}
+
+@container concerns (max-width: 920px) {
+  .concern-desk-management .concern-split-workspace {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@container concerns (max-width: 640px) {
+  .concern-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .concern-desk-management .concern-filter-bar .request-subfilters .request-search-field {
+    flex-basis: 100% !important;
+  }
+
+  .concern-desk-management .concern-filter-bar .request-subfilters .table-filter {
+    flex: 1 1 110px !important;
+  }
+
+  .concern-desk-management .concern-filter-bar .request-subfilters .table-filter select {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+}

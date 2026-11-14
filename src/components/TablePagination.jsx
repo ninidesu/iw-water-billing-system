@@ -36,13 +36,13 @@ export function TableEmptyRows({ count, colSpan = 10 }) {
   ))
 }
 
-export default function TablePagination({ page, pages, setPage, pageSize = 10, setPageSize, from, to, total }) {
+export default function TablePagination({ page, pages, setPage, pageSize = 10, setPageSize, from, to, total, showRange = true }) {
   return (
     <footer className="table-pagination">
       <div className="pagination-left">
-        <p>
+        {showRange && <p>
           Showing <strong>{from}–{to}</strong> of <strong>{total}</strong>
-        </p>
+        </p>}
         {setPageSize && (
           <label className="pagination-size-select">
             <span>Rows:</span>

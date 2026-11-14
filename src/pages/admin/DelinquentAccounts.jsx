@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -9,7 +9,6 @@ import {
   Printer,
   RotateCcw,
   Search,
-  UserRound,
   Wallet,
   X,
 } from 'lucide-react'
@@ -21,7 +20,7 @@ import { PageHeader, Notice, Loading, EmptyState } from '../../components/UI.jsx
 import StatCard from '../../components/StatCard.jsx'
 import StatusBadge from '../../components/StatusBadge.jsx'
 import SearchSuggest from '../../components/SearchSuggest.jsx'
-import TablePagination, { TableEmptyRows, useTablePagination } from '../../components/TablePagination.jsx'
+import TablePagination, { useTablePagination } from '../../components/TablePagination.jsx'
 import './delinquent.css'
 
 const LOCAL_FOLLOWUPS_KEY = 'iw_local_collection_followups'
@@ -62,6 +61,7 @@ export default function DelinquentAccounts() {
   const [busy, setBusy] = useState(false)
   const [revision, setRevision] = useState(0)
   const [printing, setPrinting] = useState(false)
+  const detailDialog = useRef(null)
   const today = todayISO()
 
   useEffect(() => {
@@ -161,11 +161,19 @@ export default function DelinquentAccounts() {
   }, [accounts, search, age, status, barangay, follow, minAmount, sort, history, today])
 
   const page = useTablePagination(rows, 10, [search, age, status, follow, minAmount, barangay, sort])
-  const account = accounts.find((r) => r.customer.id === selected) || rows[0]
+  const account = accounts.find((r) => r.customer.id === selected)
+  const showDetails = Boolean(account)
 
   useEffect(() => {
-    if (!selected && rows[0]) setSelected(rows[0].customer.id)
-  }, [selected, rows])
+    const dialog = detailDialog.current
+    if (!showDetails || !dialog) return
+    const opener = document.activeElement
+    dialog.showModal()
+    return () => {
+      dialog.close()
+      if (opener instanceof HTMLElement && opener.isConnected) opener.focus({ preventScroll: true })
+    }
+  }, [showDetails])
 
   const hasActiveFilters = Boolean(
     search || age || status || follow || minAmount !== '0' || barangay !== 'all' || sort !== 'balance_desc'
@@ -192,10 +200,10 @@ export default function DelinquentAccounts() {
   }).length
 
   const agePills = [
-    { val: '', label: 'All Overdue', count: accounts.length, tone: 'neutral' },
-    { val: '1mo', label: '1 Mo · Reminder', count: count1mo, tone: 'green' },
-    { val: '2mo', label: '2 Mos · Warning', count: count2mo, tone: 'yellow' },
-    { val: '3mo', label: '3+ Mos · Restriction', count: count3mo, tone: 'red' },
+    { val: '', label: 'All', count: accounts.length, tone: 'neutral' },
+    { val: '1mo', label: '1 Mo', count: count1mo, tone: 'green' },
+    { val: '2mo', label: '2 Mos', count: count2mo, tone: 'yellow' },
+    { val: '3mo', label: '3+ Mos', count: count3mo, tone: 'red' },
   ]
 
 
@@ -237,7 +245,7 @@ export default function DelinquentAccounts() {
   return (
     <div className="page-content delinquent-page">
       <div className={printing ? 'delinquent-screen printing' : 'delinquent-screen'}>
-        <PageHeader title="Overdue Accounts" />
+        <PageHeader title="Overdue Accounts" description="Review overdue balances and track customer follow-ups." />
         <Notice type="error">{error || historyError}</Notice>
 
         {loading && !data ? (
@@ -249,9 +257,6 @@ export default function DelinquentAccounts() {
               <div className="stat-card">
                 <div className="stat-top-info">
                   <span className="stat-label">Overdue Accounts</span>
-                  <span className="stat-subtext">
-                    {accounts.length === 0 ? 'All in good standing' : `${accounts.length} unique customers`}
-                  </span>
                 </div>
                 <strong className="stat-value-bottom-right">{accounts.length}</strong>
               </div>
@@ -259,7 +264,6 @@ export default function DelinquentAccounts() {
               <div className="stat-card">
                 <div className="stat-top-info">
                   <span className="stat-label">Total Overdue Balance</span>
-                  <span className="stat-subtext">Uncollected receivables</span>
                 </div>
                 <strong className="stat-value-bottom-right">{peso(totalOverdue)}</strong>
               </div>
@@ -267,9 +271,6 @@ export default function DelinquentAccounts() {
               <div className="stat-card">
                 <div className="stat-top-info">
                   <span className="stat-label">Eligible for Restriction</span>
-                  <span className="stat-subtext">
-                    {count3mo === 0 ? 'No accounts at risk' : `${count3mo} accounts (Stage 3)`}
-                  </span>
                 </div>
                 <strong className="stat-value-bottom-right">{count3mo}</strong>
               </div>
@@ -277,25 +278,26 @@ export default function DelinquentAccounts() {
               <div className="stat-card">
                 <div className="stat-top-info">
                   <span className="stat-label">Pending Follow-Up</span>
-                  <span className="stat-subtext">
-                    {pendingFollowupCount === 0 ? 'All accounts contacted' : 'Needs contact or visit'}
-                  </span>
                 </div>
                 <strong className="stat-value-bottom-right">{pendingFollowupCount}</strong>
               </div>
             </div>
 
-            {/* Stage Filter Tabs with Pastel Colors */}
-            <div className="delinquent-stage-bar" role="tablist" aria-label="Overdue Stage Filter">
+            <section className="delinquent-table-card overdue-ledger" aria-labelledby="overdue-list-title">
+            <h2 className="sr-only" id="overdue-list-title">Account list</h2>
+            <div className="delinquent-filters" role="group" aria-label="Account filters">
+            <div className="delinquent-stage-bar" role="group" aria-label="Overdue stage">
               {agePills.map(({ val, label, count, tone }) => (
                 <button
                   key={val}
                   type="button"
+                  aria-pressed={age === val}
                   className={`delinquent-age-pill tone-${tone} ${age === val ? 'active' : ''}`}
                   onClick={() => setAge(val)}
                 >
+                  <span className="overdue-filter-dot" aria-hidden="true" />
                   <span className="pill-label">{label}</span>
-                  <span className="pill-count">({count})</span>
+                  <span className="pill-count">{count}</span>
                 </button>
               ))}
             </div>
@@ -373,29 +375,21 @@ export default function DelinquentAccounts() {
               )}
             </div>
 
-            {/* Split Layout: Table vs Dossier */}
-            <div className="delinquent-split-layout">
-              {/* Left Column: Overdue Accounts Table */}
-              <div className="delinquent-table-card">
-                <div className="delinquent-table-header">
-                  <h2>Overdue Accounts List</h2>
-                  <span className="delinquent-count-badge">
-                    {rows.length} {rows.length === 1 ? 'account' : 'accounts'}
-                  </span>
-                </div>
+            </div>
 
                 {rows.length > 0 ? (
                   <>
-                    <div className="table-scroll">
+                    <div className="table-scroll" tabIndex={0} role="region" aria-labelledby="overdue-list-title">
                       <table>
                         <thead>
                           <tr>
-                            <th>Customer & CAN</th>
+                            <th>Customer</th>
                             <th>Unpaid Bills</th>
                             <th>Overdue Amount</th>
-                            <th>Stage & Age</th>
+                            <th>Age</th>
                             <th>Status</th>
                             <th>Last Contact</th>
+                            <th scope="col">Action</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -406,15 +400,20 @@ export default function DelinquentAccounts() {
                               <tr
                                 key={r.customer.id}
                                 className={`clickable-row ${isSelected ? 'selected-row' : ''}`}
-                                tabIndex="0"
                                 onClick={() => setSelected(r.customer.id)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' || e.key === ' ') setSelected(r.customer.id)
-                                }}
                               >
                                 <td>
                                   <div className="delinquent-customer-cell">
-                                    <strong>{r.customer.full_name}</strong>
+                                    <button
+                                      type="button"
+                                      aria-pressed={isSelected}
+                                      onClick={(event) => {
+                                        event.stopPropagation()
+                                        setSelected(r.customer.id)
+                                      }}
+                                    >
+                                      {r.customer.full_name}
+                                    </button>
                                     <small>CAN {r.customer.can || '—'}</small>
                                   </div>
                                 </td>
@@ -427,39 +426,55 @@ export default function DelinquentAccounts() {
                                   <span className="delinquent-amount-text">{peso(r.amount)}</span>
                                 </td>
                                 <td>
-                                  <span className={`delinquent-stage-tag stage-${r.stage.level}`}>
-                                    <span className="stage-dot" />
-                                    <strong>{r.stage.shortLabel}</strong>
-                                    <small>({r.days}d)</small>
-                                  </span>
+                                  <div className="overdue-age-cell">
+                                    <span className={`delinquent-stage-tag stage-${r.stage.level}`}>
+                                      {r.stage.level === 3 ? '3+ Mos' : r.stage.level === 2 ? '2 Mos' : '1 Mo'}
+                                    </span>
+                                    <span>{r.days} {r.days === 1 ? 'day' : 'days'}</span>
+                                  </div>
                                 </td>
                                 <td>
                                   <StatusBadge status={r.customer.status} />
                                 </td>
                                 <td>
-                                  <span style={{ fontSize: '12px', color: '#64748B' }}>
-                                    {lastContact ? dateLabel(lastContact.created_at) : '—'}
+                                  <span className="overdue-last-contact">
+                                    {lastContact ? dateLabel(lastContact.created_at) : 'Not yet contacted'}
                                   </span>
+                                </td>
+                                <td>
+                                  <div className="table-actions">
+                                    <button
+                                      type="button"
+                                      className="table-view-btn"
+                                      aria-label={`View overdue account for ${r.customer.full_name}`}
+                                      aria-haspopup="dialog"
+                                      onClick={(event) => {
+                                        event.stopPropagation()
+                                        setSelected(r.customer.id)
+                                      }}
+                                    >
+                                      View
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             )
                           })}
-                          <TableEmptyRows count={page.emptyRowsCount} colSpan={6} />
                         </tbody>
                       </table>
                     </div>
-                    <TablePagination {...page} total={rows.length} />
+                    <TablePagination {...page} total={rows.length} showRange={false} />
                   </>
                 ) : (
                   <div className="delinquent-empty-box">
                     <div className="delinquent-empty-icon">
                       <CheckCircle2 size={26} />
                     </div>
-                    <h3>No Matching Overdue Accounts</h3>
+                    <h3>{hasActiveFilters ? 'No matching accounts' : 'No overdue accounts'}</h3>
                     <p>
                       {hasActiveFilters
-                        ? 'No overdue accounts match your current filters. Try resetting your search or balance filter.'
-                        : 'All customer accounts are currently settled or in good standing! No accounts are pending collection.'}
+                        ? 'Clear your filters to see more accounts.'
+                        : 'There are no balances past their due date.'}
                     </p>
                     {hasActiveFilters && (
                       <button type="button" className="button button-ghost button-small" onClick={resetFilters}>
@@ -468,44 +483,57 @@ export default function DelinquentAccounts() {
                     )}
                   </div>
                 )}
-              </div>
+            </section>
 
               {/* Right Column: Account Dossier & Actions */}
               {account ? (
-                <aside className="delinquent-detail-panel">
+                <dialog
+                  ref={detailDialog}
+                  className="delinquent-detail-panel overdue-account-drawer"
+                  aria-labelledby="overdue-detail-title"
+                  onCancel={(event) => {
+                    event.preventDefault()
+                    setSelected('')
+                  }}
+                  onClick={(event) => {
+                    if (event.target === event.currentTarget) setSelected('')
+                  }}
+                >
                   <div className="delinquent-detail-hero">
                     <div className="delinquent-hero-top">
                       <div className="delinquent-hero-info">
-                        <h2>{account.customer.full_name}</h2>
+                        <h2 id="overdue-detail-title">{account.customer.full_name}</h2>
                         <p>
-                          CAN {account.customer.can || '—'} · Meter {account.customer.meter_no || '—'} · {account.customer.address || 'No service address recorded'}
+                          CAN {account.customer.can || '—'} · {account.customer.meter_no || '—'} · {account.customer.address || 'Address unavailable'}
                         </p>
                       </div>
-                      <StatusBadge status={account.customer.status} />
+                      <button type="button" className="overdue-drawer-close" aria-label="Close account details" onClick={() => setSelected('')}>
+                        <X size={20} aria-hidden="true" />
+                      </button>
                     </div>
 
                     {/* Overdue Stage Alert Callout */}
                     <div className={`delinquent-stage-callout tone-${account.stage.tone}`}>
                       <div className="stage-callout-head">
                         <span className="stage-callout-badge">{account.stage.badgeLabel}</span>
-                        <span className="stage-callout-urgency">{account.stage.urgencyBadge}</span>
                       </div>
-                      <p className="stage-callout-message">{account.stage.noticeWarning}</p>
+                      <p className="stage-callout-message">
+                        {account.stage.level === 3
+                          ? 'Settle balance within 5 business days to avoid restriction.'
+                          : account.stage.level === 2
+                            ? 'Settle balance to avoid restriction.'
+                            : 'Payment overdue. Send a reminder.'}
+                      </p>
                       {account.stage.level === 3 && (
-                        <div className="reconnection-policy-note">
-                          <Info size={14} className="reconnection-info-icon" />
-                          <div>
-                            <strong>Reconnection Policy:</strong>
-                            <span>
-                              Accounts restricted or inactive require settlement of all overdue bills plus the approved <strong>Reconnection Fee</strong> before water service will be restored.
-                            </span>
-                          </div>
-                        </div>
+                        <details className="reconnection-policy-note">
+                          <summary><Info size={14} className="reconnection-info-icon" /> Policy</summary>
+                          <p>Accounts restricted or inactive require settlement of all overdue bills plus the approved Reconnection Fee before water service will be restored.</p>
+                        </details>
                       )}
                     </div>
 
                     <div className="delinquent-hero-balance">
-                      <span>Total Overdue Balance ({account.bills.length} {account.bills.length === 1 ? 'bill' : 'bills'})</span>
+                      <span>Total Overdue Balance</span>
                       <strong>{peso(account.amount)}</strong>
                     </div>
 
@@ -514,10 +542,10 @@ export default function DelinquentAccounts() {
                         <Wallet size={15} /> Receive Payment
                       </Link>
                       <button type="button" className="button button-outline" onClick={() => setPrinting(true)}>
-                        <Printer size={15} /> {account.stage.buttonLabel}
+                        <Printer size={15} /> Print Notice
                       </button>
                       <Link className="button button-ghost" to={`/admin/customers/${account.customer.id}`}>
-                        Full Account <ArrowUpRight size={14} />
+                        View Account <ArrowUpRight size={14} />
                       </Link>
                     </div>
                   </div>
@@ -525,9 +553,6 @@ export default function DelinquentAccounts() {
                   <div className="delinquent-dossier-body">
                     {/* Itemized Unpaid Bills */}
                     <section>
-                      <div className="delinquent-section-title">
-                        <h3>Overdue Bills ({account.bills.length})</h3>
-                      </div>
                       <div className="delinquent-bills-list">
                         {account.bills.map((b) => (
                           <div className="delinquent-bill-item" key={b.id}>
@@ -547,11 +572,11 @@ export default function DelinquentAccounts() {
                     {/* Record Follow-up Form */}
                     <form className="delinquent-form-box" onSubmit={save}>
                       <div className="delinquent-section-title" style={{ margin: 0 }}>
-                        <h3>Record Contact / Follow-Up</h3>
+                        <h3>Follow-up</h3>
                       </div>
                       <div className="delinquent-form-row">
                         <label>
-                          <span>Contact Method</span>
+                          <span>Method</span>
                           <select name="method" defaultValue="Phone Call">
                             <option>Phone Call</option>
                             <option>SMS Reminder</option>
@@ -563,7 +588,7 @@ export default function DelinquentAccounts() {
                       </div>
                       <div className="delinquent-form-row">
                         <label>
-                          <span>Discussion Notes</span>
+                          <span>Notes</span>
                           <textarea
                             name="notes"
                             required
@@ -583,7 +608,7 @@ export default function DelinquentAccounts() {
                         </label>
                       </div>
                       <button type="submit" className="button button-small" disabled={busy} style={{ width: '100%', marginTop: '6px' }}>
-                        {busy ? 'Saving...' : 'Save Follow-Up Entry'}
+                        {busy ? 'Saving...' : 'Save Follow-up'}
                       </button>
                     </form>
 
@@ -617,22 +642,8 @@ export default function DelinquentAccounts() {
                       </div>
                     </section>
                   </div>
-                </aside>
-              ) : (
-                <aside className="delinquent-detail-panel empty">
-                  <div className="delinquent-empty-box">
-                    <div className="delinquent-empty-icon" style={{ background: '#F1F5F9', color: '#64748B' }}>
-                      <UserRound size={26} />
-                    </div>
-                    <h3>Select an Overdue Account</h3>
-                    <p>
-                      Click any customer row in the table to inspect their unpaid bills breakdown, record collection contacts, or
-                      print an official notice.
-                    </p>
-                  </div>
-                </aside>
-              )}
-            </div>
+                </dialog>
+              ) : null}
           </>
         )}
       </div>
@@ -643,37 +654,36 @@ export default function DelinquentAccounts() {
           <header className="notice-header">
             <div className="notice-brand">
               <h1>ISABEL WATERS</h1>
-              <p className="notice-brand-sub">Municipal Water Utility Billing & Collection Services</p>
+              <p className="notice-brand-sub">Billing & Collection</p>
             </div>
             <div className={`notice-stage-banner tone-${account.stage.tone}`}>
               <h2>{account.stage.noticeTitle}</h2>
-              <span className="notice-level-tag">{account.stage.badgeLabel}</span>
             </div>
             <div className="notice-meta-bar">
               <span>Date Issued: <strong>{dateLabel(today)}</strong></span>
-              <span>Account CAN: <strong>{account.customer.can || '—'}</strong></span>
-              <span>Meter Serial: <strong>{account.customer.meter_no || '—'}</strong></span>
+              <span>CAN: <strong>{account.customer.can || '—'}</strong></span>
+              <span>Meter: <strong>{account.customer.meter_no || '—'}</strong></span>
             </div>
           </header>
 
           <section className="notice-recipient-card">
             <div className="recipient-item">
-              <span className="r-label">Customer Name:</span>
+              <span className="r-label">Customer</span>
               <span className="r-value"><strong>{account.customer.full_name}</strong></span>
             </div>
             <div className="recipient-item">
-              <span className="r-label">Service Address:</span>
+              <span className="r-label">Service Address</span>
               <span className="r-value">{account.customer.address || 'Address on file'}</span>
-            </div>
-            <div className="recipient-item">
-              <span className="r-label">Account Status:</span>
-              <span className="r-value">{account.customer.status ? account.customer.status.toUpperCase() : 'ACTIVE'}</span>
             </div>
           </section>
 
           <section className={`notice-warning-box tone-${account.stage.tone}`}>
-            <p className="notice-warning-lead"><strong>{account.stage.noticeHeadline}</strong></p>
-            <p>{account.stage.noticeWarning}</p>
+            <p className="notice-warning-lead"><strong>Action required</strong></p>
+            <p>{account.stage.level === 3
+              ? 'Settle the overdue balance within 5 business days to avoid service restriction.'
+              : account.stage.level === 2
+                ? 'Settle the overdue balance to avoid service restriction.'
+                : 'Please settle the overdue balance.'}</p>
           </section>
 
           <table className="notice-table">
@@ -681,7 +691,6 @@ export default function DelinquentAccounts() {
               <tr>
                 <th>Bill No.</th>
                 <th>Due Date</th>
-                <th>Days Overdue</th>
                 <th style={{ textAlign: 'right' }}>Amount Overdue</th>
               </tr>
             </thead>
@@ -690,39 +699,29 @@ export default function DelinquentAccounts() {
                 <tr key={b.id}>
                   <td><strong>{b.bill_no}</strong></td>
                   <td>{dateLabel(b.due_date)}</td>
-                  <td>{Math.max(0, Math.round((Date.parse(today + 'T00:00:00Z') - Date.parse(b.due_date + 'T00:00:00Z')) / 86400000))} days</td>
                   <td style={{ textAlign: 'right' }}>{peso(b.balance)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="notice-total-row">
-                <td colSpan={3}><strong>TOTAL OUTSTANDING OVERDUE AMOUNT</strong></td>
+                <td colSpan={2}><strong>Total Due</strong></td>
                 <td style={{ textAlign: 'right' }}><strong>{peso(account.amount)}</strong></td>
               </tr>
             </tfoot>
           </table>
 
-          {/* Reconnection Fee Policy Box */}
-          <section className="notice-reconnection-card">
-            <h4>Reconnection & Reactivation Guidelines</h4>
-            <p>
-              In accordance with municipal water utility guidelines, water services that are <strong>restricted</strong> or set to <strong>inactive</strong> status due to overdue accounts require settlement of all outstanding balances plus the approved <strong>Reconnection Fee</strong> before water flow will be reactivated.
-            </p>
-            <p className="notice-settlement-cta">
-              Please visit the Isabel Waters Collection Counter at the Municipal Compound during office hours (Mon–Fri, 8:00 AM – 5:00 PM) to settle your account.
-            </p>
-          </section>
+          {account.stage.level === 3 && (
+            <p className="notice-policy-line">If service is restricted, reconnection requires full payment and the approved Reconnection Fee.</p>
+          )}
 
           <footer className="notice-footer">
             <div className="notice-signoff">
               <div className="sig-line">____________________________________</div>
               <p>Billing & Collection Officer</p>
-              <small>Isabel Waters District</small>
             </div>
             <div className="notice-disclaimer">
-              <p>This is an official administrative notice of overdue account. It is not an official receipt.</p>
-              <small>For billing verification, contact our customer desk or present this slip at our payment window.</small>
+              <p>Overdue notice · Not an official receipt</p>
             </div>
           </footer>
         </article>

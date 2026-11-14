@@ -1,0 +1,324 @@
+.staff-shell .admin-settings-page {
+  container: settings / inline-size;
+  --settings-inset: clamp(16px, 2.4cqi, 24px);
+}
+
+.staff-shell .admin-settings-page .page-header {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.admin-settings-page :is(.page-header-title, .page-header-right, .staff-header-meta, .staff-header-profile-column) {
+  min-width: 0;
+}
+
+.admin-settings-page .staff-header-meta {
+  flex-wrap: wrap;
+}
+
+.admin-settings-page .shadcn-settings-layout {
+  display: grid;
+  grid-template-columns: clamp(160px, 20cqi, 200px) minmax(0, 1fr);
+  gap: clamp(20px, 3.2cqi, 32px);
+  margin-top: 28px;
+}
+
+.staff-shell .admin-settings-page .shadcn-settings-nav {
+  width: 100%;
+  flex-direction: column;
+  position: sticky;
+  top: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.admin-settings-page .shadcn-nav-item {
+  min-height: 44px;
+  width: 100%;
+  color: var(--staff-muted);
+}
+
+.admin-settings-page .shadcn-nav-item:hover,
+.admin-settings-page .shadcn-nav-item.active {
+  background: var(--staff-accent-soft);
+  color: var(--staff-ink);
+}
+
+.admin-settings-page .shadcn-settings-main {
+  max-width: none;
+  container: settings-content / inline-size;
+}
+
+.admin-settings-page .shadcn-tab-pane:not(.settings-account-pane),
+.admin-settings-page .settings-card {
+  background: var(--staff-panel);
+  color: var(--staff-ink);
+  border: 1px solid var(--staff-border);
+  border-radius: 14px;
+}
+
+.admin-settings-page .shadcn-tab-pane:not(.settings-account-pane) {
+  padding: var(--settings-inset);
+}
+
+.admin-settings-page .settings-account-pane {
+  display: grid;
+  gap: 20px;
+}
+
+.admin-settings-page .settings-account-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: var(--settings-inset);
+}
+
+.admin-settings-page .settings-avatar-circle {
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  font-size: 22px;
+}
+
+.settings-account-identity {
+  flex: 1 1 145px;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+
+.settings-account-identity strong {
+  font-size: 17px;
+}
+
+.settings-account-identity span,
+.admin-settings-page .shadcn-section-desc,
+.admin-settings-page .shadcn-form-hint {
+  color: var(--staff-muted);
+}
+
+.settings-account-role,
+.settings-role-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.settings-account-role {
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--staff-accent-soft);
+  color: var(--staff-ink);
+  font-size: 13px;
+}
+
+.settings-role-value svg {
+  color: var(--staff-muted);
+}
+
+.settings-card-heading,
+.settings-field-row,
+.settings-card-actions {
+  padding: 20px var(--settings-inset);
+}
+
+.settings-card-heading h2,
+.admin-settings-page .shadcn-section-title {
+  margin: 0;
+  color: var(--staff-ink);
+  font-size: 17px;
+}
+
+.settings-card-heading p {
+  margin: 3px 0 0;
+  color: var(--staff-muted);
+  font-size: 13.5px;
+}
+
+.settings-field-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  align-items: start;
+  gap: var(--settings-inset);
+}
+
+.settings-field-row,
+.settings-card-actions {
+  border-top: 1px solid var(--staff-border);
+}
+
+.settings-card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.settings-card-feedback {
+  padding-inline: var(--settings-inset);
+}
+
+.admin-settings-page .shadcn-form-label {
+  color: var(--staff-ink);
+}
+
+.settings-field-row .shadcn-form-label {
+  margin-bottom: 0;
+}
+
+.settings-field-row .shadcn-input {
+  min-height: 44px;
+}
+
+.admin-settings-page .shadcn-input:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.settings-password-field {
+  position: relative;
+}
+
+.settings-password-field .shadcn-input {
+  padding-inline-end: 66px;
+}
+
+.settings-password-field button {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 4px;
+  padding-inline: 10px;
+  border: 0;
+  background: transparent;
+  color: var(--staff-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-settings-page .shadcn-divider {
+  background: var(--staff-border);
+}
+
+.admin-settings-page .settings-preview-caption {
+  flex-wrap: wrap;
+}
+
+.admin-settings-page .settings-preview-table-box {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.admin-settings-page .settings-toggle-row.compact span {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.admin-settings-page .settings-toggle-row.compact .settings-switch {
+  flex-shrink: 0;
+}
+
+.staff-shell[data-staff-theme='dark'] .admin-settings-page :is(
+  .settings-toggle-row.compact, .settings-preview-caption, .mf-decision-item
+) {
+  background: var(--staff-field);
+  border-color: var(--staff-border);
+}
+
+.staff-shell[data-staff-theme='dark'] .admin-settings-page :is(
+  .settings-toggle-row.compact span, .settings-preview-caption span,
+  .mf-decision-body strong, .mf-decision-meta strong
+) {
+  color: var(--staff-ink);
+}
+
+.staff-shell[data-staff-theme='dark'] .admin-settings-page :is(
+  .mf-decision-body small, .step-slider-label-btn
+) {
+  color: var(--staff-muted);
+}
+
+.staff-shell[data-staff-theme='dark'] .admin-settings-page :is(
+  .settings-preview-pill, .mf-decision-item:hover, .settings-toggle-row.compact:hover
+) {
+  background: var(--staff-accent-soft);
+}
+
+.staff-shell[data-staff-theme='dark'] .admin-settings-page .settings-choice-btn.compact:hover {
+  background: var(--staff-accent-soft);
+}
+
+.staff-shell[data-staff-theme='dark'] .admin-settings-page .settings-choice-btn.compact.active {
+  background: #243d59;
+  border-color: #8cc4ff;
+  color: var(--staff-ink);
+}
+
+.staff-shell[data-staff-theme='dark'] .admin-settings-page :is(
+  .step-slider-track, .settings-toggle-row.compact input.settings-switch
+) {
+  background: #48617a;
+}
+
+.staff-shell[data-staff-theme='dark'] .admin-settings-page :is(
+  .step-slider-progress, .step-slider-point.passed .step-slider-dot,
+  .step-slider-point.active .step-slider-dot, .settings-toggle-row.compact input.settings-switch:checked
+) {
+  background: #2456a6;
+}
+
+.staff-shell[data-staff-theme='dark'] .admin-settings-page .step-slider-label-btn:is(:hover, .active) {
+  color: #8cc4ff;
+}
+
+@container settings (max-width: 740px) {
+  .admin-settings-page .shadcn-settings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .staff-shell .admin-settings-page .shadcn-settings-nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 125px), 1fr));
+    position: static;
+    overflow: visible;
+  }
+
+  .admin-settings-page .shadcn-nav-item {
+    white-space: normal;
+  }
+}
+
+@container settings-content (max-width: 560px) {
+  .settings-field-row,
+  .admin-settings-page .shadcn-tab-pane > form > .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .admin-settings-page .settings-choice-grid[class*='cols-'] {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+  }
+
+  .admin-settings-page .settings-toggle-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container settings (max-width: 440px) {
+  .admin-settings-page .page-header-right {
+    margin-inline-start: 0;
+  }
+
+  .admin-settings-page .settings-card-actions button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-settings-page .shadcn-tab-pane {
+    animation: none;
+  }
+}

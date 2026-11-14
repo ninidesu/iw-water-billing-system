@@ -354,9 +354,7 @@
 /* Two-column Split: Table vs Dossier */
 .delinquent-split-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(380px, 1fr);
-  gap: 20px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* Left Column: Delinquent Table Panel */
@@ -577,13 +575,65 @@
   flex-direction: column;
 }
 
-.delinquent-detail-panel.empty {
-  min-height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 40px 24px;
+.delinquent-detail-panel.overdue-account-drawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(100%, 680px);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.overdue-account-drawer:not([open]) {
+  display: none;
+}
+
+.overdue-account-drawer::backdrop {
+  background: rgb(8 18 32 / 55%);
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .overdue-account-drawer[open] {
+    animation: overdue-drawer-enter 220ms ease-out;
+  }
+
+  .overdue-account-drawer[open]::backdrop {
+    animation: overdue-backdrop-enter 220ms ease-out;
+  }
+}
+
+@keyframes overdue-drawer-enter {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes overdue-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+html:has(.overdue-account-drawer[open]) {
+  overflow: hidden;
+}
+
+.overdue-drawer-close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  height: 40px;
+  border: 1px solid var(--staff-border);
+  border-radius: 8px;
+  background: var(--staff-field);
+  color: var(--staff-ink);
+}
+
+.overdue-drawer-close:hover {
+  background: var(--staff-accent-soft);
 }
 
 .delinquent-detail-hero {
@@ -682,9 +732,6 @@
 
 /* Reconnection Policy Note */
 .reconnection-policy-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
   padding: 8px 10px;
   border-radius: 7px;
   background: #FFFFFF;
@@ -693,6 +740,18 @@
   font-size: 12px;
   line-height: 1.4;
   margin-top: 4px;
+}
+
+.reconnection-policy-note summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.reconnection-policy-note p {
+  margin: 8px 0 0;
 }
 
 .reconnection-info-icon {
@@ -1142,13 +1201,197 @@
   line-height: 1.35;
 }
 
+.notice-policy-line {
+  margin: 0 0 20px;
+  font-size: 11.5px;
+  color: #475569;
+}
+
 /* Responsive */
-@media (max-width: 1100px) {
-  .delinquent-split-layout {
-    grid-template-columns: 1fr;
+.delinquent-screen {
+  container: overdue / inline-size;
+}
+
+.delinquent-screen .staff-header-meta {
+  flex-wrap: wrap;
+}
+
+.delinquent-screen .delinquent-filters {
+  display: grid;
+  gap: 0;
+}
+
+.delinquent-screen .overdue-ledger {
+  overflow: visible;
+  background: var(--staff-panel);
+  border-color: var(--staff-border);
+}
+
+.overdue-ledger .delinquent-stage-bar {
+  gap: 0;
+  border-radius: 13px 13px 0 0;
+  overflow: hidden;
+  border-bottom: 1px solid var(--staff-border);
+}
+
+.delinquent-screen .overdue-ledger .delinquent-stage-bar .delinquent-age-pill {
+  min-height: 52px;
+  padding: 8px;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  color: var(--staff-muted) !important;
+  box-shadow: none;
+}
+
+.delinquent-screen .overdue-ledger .delinquent-stage-bar .delinquent-age-pill:is(:hover, [aria-pressed='true']) {
+  background: var(--staff-field) !important;
+  color: var(--staff-ink) !important;
+}
+
+.delinquent-screen .overdue-ledger .delinquent-stage-bar .delinquent-age-pill[aria-pressed='true'] {
+  box-shadow: inset 0 -3px var(--overdue-tab-accent, #2456a6);
+}
+
+.staff-shell[data-staff-theme='dark'] .overdue-ledger {
+  --overdue-tab-accent: #8cc4ff;
+}
+
+.overdue-ledger .delinquent-age-pill:focus-visible {
+  outline-offset: -5px;
+}
+
+.overdue-filter-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8798a9;
+}
+
+.tone-green .overdue-filter-dot { background: #33bb83; }
+.tone-yellow .overdue-filter-dot { background: #efa721; }
+.tone-red .overdue-filter-dot { background: #f36c78; }
+
+.delinquent-screen .overdue-ledger .delinquent-table-toolbar {
+  margin: 0;
+  padding: 14px;
+  border-bottom: 1px solid var(--staff-border);
+}
+
+.overdue-ledger .delinquent-table-toolbar .table-filter select {
+  width: 100%;
+}
+
+.overdue-ledger .table-pagination {
+  border-radius: 0 0 13px 13px;
+}
+
+.overdue-ledger th {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.overdue-ledger .table-actions {
+  justify-content: flex-end;
+}
+
+.overdue-ledger .table-view-btn {
+  min-height: 38px;
+  padding-inline: 14px;
+}
+
+.overdue-age-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.overdue-age-cell > span:last-child,
+.overdue-last-contact {
+  color: var(--staff-muted);
+  font-size: 12px;
+}
+
+.overdue-ledger .delinquent-stage-tag {
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.staff-shell[data-staff-theme='dark'] .overdue-ledger .delinquent-stage-tag {
+  background: #275586;
+  color: #fff;
+  border-color: transparent;
+}
+
+.staff-shell[data-staff-theme='dark'] .overdue-ledger .delinquent-stage-tag.stage-2 { background: #8a5106; }
+.staff-shell[data-staff-theme='dark'] .overdue-ledger .delinquent-stage-tag.stage-3 { background: #ab3045; }
+
+.staff-shell[data-staff-theme='dark'] .overdue-ledger .delinquent-bills-pill {
+  background: transparent;
+  color: var(--staff-ink);
+}
+
+.delinquent-filters .delinquent-age-pill {
+  min-height: 44px;
+}
+
+.delinquent-filters .pill-count {
+  display: inline-block;
+  min-width: 24px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+
+.delinquent-filters .delinquent-age-pill[aria-pressed='true'] {
+  box-shadow: inset 0 -3px currentColor;
+}
+
+.delinquent-filters .delinquent-table-toolbar {
+  flex-wrap: wrap;
+}
+
+.delinquent-table-card .table-scroll:focus-visible {
+  outline-offset: -3px;
+}
+
+.delinquent-screen .delinquent-customer-cell button {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--staff-ink);
+  font: inherit;
+  font-weight: 700;
+  text-align: start;
+}
+
+.delinquent-screen .delinquent-customer-cell button:hover {
+  text-decoration: underline;
+}
+
+.delinquent-screen .table-pagination,
+.delinquent-screen .table-pagination .pagination-controls {
+  flex-wrap: wrap;
+}
+
+@container overdue (max-width: 660px) {
+  .delinquent-screen .delinquent-stats-grid,
+  .delinquent-screen .delinquent-stage-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
-  .delinquent-detail-panel {
-    position: static;
+
+  .delinquent-filters .delinquent-table-toolbar .table-search-combobox {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+}
+
+@container overdue (max-width: 360px) {
+  .delinquent-screen .delinquent-stats-grid,
+  .delinquent-screen .delinquent-form-row.two-col {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
 
@@ -1172,11 +1415,19 @@
 }
 
 @media print {
+  .overdue-account-drawer, .overdue-account-drawer::backdrop {
+    display: none !important;
+  }
+  @page { margin: 14mm; }
+  .delinquent-page { background: #fff !important; min-height: 0 !important; }
   .delinquent-screen.printing {
     display: none !important;
   }
   .collection-notice {
     display: block !important;
+    max-width: none;
+    margin: 0;
+    padding: 0;
   }
   .collection-notice tr {
     break-inside: avoid;

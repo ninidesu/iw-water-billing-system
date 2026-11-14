@@ -18,6 +18,7 @@ import { billStatus, dateISOManila, dateLabel, monthLabel, peso, todayISO, vatBr
 import { exportDailyCollectionCsv, exportDailyCollectionPdf } from '../../lib/dailyReportExport.js'
 import { usePreferences } from '../../lib/preferences.js'
 import { EmptyState, Loading, Notice, PageHeader } from '../../components/UI.jsx'
+import './overview-reference.css'
 
 function formatRelativeDate(isoDate, todayStr) {
   if (!isoDate) return '—'
@@ -39,8 +40,7 @@ function SegmentedDonut({ slices, totalAmount, activeId, onHover }) {
   let currentOffset = 0
   const rendered = slices.map((s) => {
     const len = (s.percent / 100) * C
-    const gap = slices.length > 1 ? 4 : 0
-    const dArray = `${Math.max(0, len - gap)} ${C - Math.max(0, len - gap)}`
+    const dArray = `${len} ${C - len}`
     const dOffset = -currentOffset
     currentOffset += len
     return { ...s, dArray, dOffset }
@@ -50,14 +50,14 @@ function SegmentedDonut({ slices, totalAmount, activeId, onHover }) {
 
   return (
     <div className="nev-donut-svg-wrap">
-      <svg viewBox="0 0 200 200" className="nev-donut-svg">
+      <svg viewBox="18 18 164 164" className="nev-donut-svg" aria-hidden="true">
         <circle
           cx="100"
           cy="100"
           r="70"
           fill="none"
-          stroke="#F1F5F9"
-          strokeWidth="16"
+          stroke="var(--ov-line)"
+          strokeWidth="20"
         />
         {rendered.map((s) => (
           <circle
@@ -67,10 +67,10 @@ function SegmentedDonut({ slices, totalAmount, activeId, onHover }) {
             r="70"
             fill="none"
             stroke={s.color}
-            strokeWidth={activeId === s.id ? 22 : 16}
+            strokeWidth={activeId === s.id ? 22 : 20}
             strokeDasharray={s.dArray}
             strokeDashoffset={s.dOffset}
-            strokeLinecap="round"
+            strokeLinecap="butt"
             className={`nev-donut-segment ${activeId === s.id ? 'active' : ''}`}
             onMouseEnter={() => onHover(s.id)}
             onMouseLeave={() => onHover(null)}
@@ -119,6 +119,8 @@ export default function Monitoring({ area = 'admin' } = {}) {
 
     const billed = data.bills.reduce((sum, bill) => sum + Number(bill.amount || 0), 0)
     const collected = validPayments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
+    const monthPayments = validPayments.filter((payment) => dateISOManila(payment.paid_at)?.slice(0, 7) === currentMonth)
+    const collectedMTD = monthPayments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
     const outstanding = data.bills.reduce((sum, bill) => sum + Number(bill.balance || 0), 0)
     const collectionRate = billed ? (collected / billed) * 100 : 0
 
@@ -166,13 +168,7 @@ export default function Monitoring({ area = 'admin' } = {}) {
       { id: 'fees', label: 'Connection Fees', value: totalOtherFees, color: '#10B981' },
     ].filter((s) => s.value > 0)
 
-    const breakdownSlices = rawBreakdownSlices.length > 0 ? rawBreakdownSlices : [
-      { id: 'water', label: 'Water Charge', value: 75000, color: '#0284C7' },
-      { id: 'vat', label: '12% VAT', value: 12000, color: '#6366F1' },
-      { id: 'penalties', label: 'Penalties', value: 5000, color: '#F59E0B' },
-      { id: 'arrears', label: 'Arrears', value: 6000, color: '#F43F5E' },
-      { id: 'fees', label: 'Connection Fees', value: 2000, color: '#10B981' },
-    ]
+    const breakdownSlices = rawBreakdownSlices
 
     const slicesSum = breakdownSlices.reduce((sum, s) => sum + s.value, 0) || 1
     const computedSlices = breakdownSlices.map((s) => ({
@@ -190,6 +186,7 @@ export default function Monitoring({ area = 'admin' } = {}) {
       todayPaymentRows,
       billed,
       collected,
+      collectedMTD,
       outstanding,
       collectionRate,
       collectedToday,
@@ -199,7 +196,7 @@ export default function Monitoring({ area = 'admin' } = {}) {
       activeCount: activeCustomers.length,
       delinquentList,
       ratePerM3: data.currentRate?.rate_per_m3 ?? 8,
-      goal: Number(prefs.monthlyGoal || data.goal || 100000),
+      goal: Number(prefs.monthlyGoal ?? data.goal ?? 0),
       computedSlices,
       slicesSum,
       recentTransactions,
@@ -209,7 +206,7 @@ export default function Monitoring({ area = 'admin' } = {}) {
   const isCashier = area === 'cashier'
 
   return (
-    <div className="page-content admin-monitor nev-dashboard">
+    <div className="page-content admin-monitor nev-dashboard overview-reference">
       <PageHeader
         title="Overview"
         action={
@@ -274,7 +271,7 @@ export default function Monitoring({ area = 'admin' } = {}) {
 
                   <div className="nev-hero-main-right">
                     <span className="nev-hero-collected-label">Collected MTD</span>
-                    <h2 className="nev-hero-giant-amount">{peso(view.collected)}</h2>
+                    <h2 className="nev-hero-giant-amount">{peso(view.collectedMTD)}</h2>
                   </div>
                 </div>
 
@@ -310,9 +307,12 @@ export default function Monitoring({ area = 'admin' } = {}) {
                   </div>
                 </div>
 
-                <p className="nev-banner-desc">
-                  {view.collectionRate.toFixed(1)}% of {peso(view.goal)} monthly collection target realized.
-                </p>
+                <div className="overview-target-row">
+                  <div className="overview-target-ring" style={{ '--progress': `${Math.min(100, view.goal ? view.collectedMTD / view.goal * 100 : 0)}%` }}>
+                    <span>{view.goal ? ((view.collectedMTD / view.goal) * 100).toFixed(1) : '0.0'}%</span>
+                  </div>
+                  <p className="nev-banner-desc"><strong>{view.goal ? ((view.collectedMTD / view.goal) * 100).toFixed(1) : '0.0'}%</strong> of {peso(view.goal)} monthly collection target realized.</p>
+                </div>
 
                 <div className="nev-banner-bottom">
                   <Link
@@ -361,11 +361,11 @@ export default function Monitoring({ area = 'admin' } = {}) {
                 className="panel nev-kpi-card"
               >
                 <div className="nev-kpi-metric-col">
-                  <strong className="nev-kpi-amount">{data.customers.length}</strong>
+                  <strong className="nev-kpi-amount">{view.activeCount}</strong>
                 </div>
                 <div className="nev-kpi-titles">
                   <h4 className="nev-kpi-name">Active Consumers</h4>
-                  <span className="nev-kpi-sub">{view.activeCount} metered households</span>
+                  <span className="nev-kpi-sub">{data.customers.length} total customers</span>
                 </div>
               </Link>
 
@@ -448,7 +448,7 @@ export default function Monitoring({ area = 'admin' } = {}) {
                                     className="nev-action-chevron"
                                     title="View receipt"
                                   >
-                                    <ChevronDown size={15} />
+                                    <ArrowRight size={15} />
                                   </Link>
                                 </td>
                               </tr>
@@ -498,14 +498,15 @@ export default function Monitoring({ area = 'admin' } = {}) {
                       </div>
                       <div className="nev-period-col">
                         <span className="nev-period-label">monthly</span>
-                        <strong className="nev-period-val">{peso(view.collected)}</strong>
+                        <strong className="nev-period-val">{peso(view.collectedMTD)}</strong>
                       </div>
                     </div>
 
                     <div className="nev-donut-subhead">
-                      <span className="nev-hero-eyebrow">Category Distribution</span>
+                      <h4 className="overview-distribution-title">Category distribution</h4>
                       <select
                         className="nev-donut-filter"
+                        aria-label="Revenue breakdown period"
                         value={donutPeriod}
                         onChange={(e) => setDonutPeriod(e.target.value)}
                       >
@@ -556,7 +557,7 @@ export default function Monitoring({ area = 'admin' } = {}) {
 
                   {view.delinquentList.length ? (
                     <div className="nev-overdue-list">
-                      {view.delinquentList.slice(0, 3).map((item) => {
+                      {view.delinquentList.map((item) => {
                         const hasPartial = item.bills.some((b) => Number(b.amount_paid || 0) > 0)
                         const statusLabel = hasPartial ? 'Partial' : 'Unpaid'
                         return (
@@ -570,7 +571,7 @@ export default function Monitoring({ area = 'admin' } = {}) {
                                 {item.customer.full_name || 'Consumer Account'}
                               </strong>
                               <span className="nev-overdue-meta">
-                                CAN {item.customer.can || '00000000'} · {statusLabel}
+                                CAN {item.customer.can || '—'} · {statusLabel}
                               </span>
                             </div>
                             <strong className="nev-overdue-amount">{peso(item.amount)}</strong>

@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Calculator, Droplets, History, Save } from 'lucide-react'
 import { supabase } from '../../lib/supabaseClient.js'
 import { dateLabel, errorMessage, peso, todayISO, vatBreakdown } from '../../lib/format.js'
 import { EmptyState, Loading, Notice, PageHeader } from '../../components/UI.jsx'
+import TablePagination, { useTablePagination } from '../../components/TablePagination.jsx'
+import './rates-charges.css'
 
 let cachedRates = null
 let cachedRateLogs = []
@@ -48,6 +51,7 @@ export default function RatesCharges() {
   const previewRate = form.rate === '' ? Number(active?.rate_per_m3 || 0) : Number(form.rate || 0)
   const previewUsage = Math.max(0, Number(usage || 0))
   const previewVat = vatBreakdown(previewUsage * previewRate)
+  const historyPage = useTablePagination(logs, 10)
 
   async function save(event) {
     event.preventDefault()
@@ -72,44 +76,40 @@ export default function RatesCharges() {
 
   return (
     <div className="page-content rates-page rates-dashboard">
-      <PageHeader title="Rates & Charges" />
+      <PageHeader title="Rates & Charges" description="Manage the residential water rate and preview its effect on a bill." />
       <Notice type="error">{error}</Notice>
       {rates === null && !error ? (
         <Loading />
       ) : (
         <>
-          {/* Top Row: Approved Cubic Rate (Left) + Sample Bill Calculator (Right) */}
-          <div className="rates-top-grid">
-            {/* Container 1: Approved Cubic Rate (Compact & Space Efficient) */}
-            <section className="panel rate-editor compact-rate-editor">
-              <div className="panel-heading">
+          <div className="rates-workspace">
+            <section className="panel rates-card" aria-labelledby="rate-editor-title">
+              <header className="rates-card-heading">
+                <span className="rates-heading-icon"><Droplets size={19} aria-hidden="true" /></span>
                 <div>
-                  <h2>Approved Cubic Rate</h2>
-                  <p>Active residential tariff & rate adjustment</p>
+                  <h2 id="rate-editor-title">Approved cubic rate</h2>
+                  <p>Residential tariff and scheduled rate changes</p>
                 </div>
-              </div>
+              </header>
 
-              {/* Preserved Design: Dark Active Rate Banner */}
-              <div className="active-rate compact-active-rate">
-                <div className="active-rate-content">
-                  <span className="active-rate-label">Current Active Rate (VAT Inclusive)</span>
-                  <strong className="active-rate-amount">
+              <div className="rates-current">
+                <div>
+                  <span>Current rate · VAT inclusive</span>
+                  <strong>
                     {active ? `${peso(active.rate_per_m3)} / m³` : 'Not configured'}
                   </strong>
                 </div>
-                <div className="active-rate-meta">
-                  <small>
+                <small>
                     {active
                       ? `Effective ${dateLabel(active.effective_from)}`
                       : 'Billing blocked until configured'}
-                  </small>
-                </div>
+                </small>
               </div>
 
-              <form className="compact-rate-form" onSubmit={save}>
-                <div className="compact-rate-inputs-row">
-                  <label className="compact-field">
-                    <span>New Rate per m³ (PHP, VAT Inclusive)</span>
+              <form className="rates-form" onSubmit={save}>
+                <div className="rates-form-fields">
+                  <label>
+                    <span>New rate per m³ (PHP, VAT inclusive)</span>
                     <input
                       required
                       type="number"
@@ -121,8 +121,8 @@ export default function RatesCharges() {
                     />
                   </label>
 
-                  <label className="compact-field">
-                    <span>Effective Date</span>
+                  <label>
+                    <span>Effective date</span>
                     <input
                       required
                       type="date"
@@ -132,8 +132,8 @@ export default function RatesCharges() {
                   </label>
                 </div>
 
-                <label className="compact-field">
-                  <span>Reason for Rate Change</span>
+                <label>
+                  <span>Reason for rate change</span>
                   <input
                     required
                     type="text"
@@ -144,26 +144,26 @@ export default function RatesCharges() {
                   />
                 </label>
 
-                <button className="button button-primary compact-save-btn" disabled={busy}>
+                <button className="button" type="submit" disabled={busy}>
+                  <Save size={16} aria-hidden="true" />
                   {busy ? 'Saving…' : 'Save Cubic Rate'}
                 </button>
               </form>
             </section>
 
-            {/* Container 2: Sample Bill Calculator (Compact) */}
-            <aside className="panel rate-preview compact-rate-calculator">
-              <div className="panel-heading">
+            <section className="panel rates-card" aria-labelledby="rate-calculator-title">
+              <header className="rates-card-heading">
+                <span className="rates-heading-icon"><Calculator size={19} aria-hidden="true" /></span>
                 <div>
-                  <h2>Sample Bill Calculator</h2>
-                  <p>Simulate consumer charges at approved rate</p>
+                  <h2 id="rate-calculator-title">Sample bill calculator</h2>
+                  <p>{form.rate === '' ? 'Using the current approved rate' : 'Using the new rate entered in the form'}</p>
                 </div>
-              </div>
+              </header>
 
-              <div className="calc-input-row">
-                <label className="calc-input-label" htmlFor="sample-calc-consumption">
-                  Sample Consumption
+              <div className="rates-usage-row">
+                <label htmlFor="sample-calc-consumption">
+                  Sample consumption (m³)
                 </label>
-                <div className="calc-input-wrap">
                   <input
                     id="sample-calc-consumption"
                     type="number"
@@ -173,47 +173,45 @@ export default function RatesCharges() {
                     onChange={(e) => setUsage(e.target.value)}
                     placeholder="20"
                   />
-                  <span className="calc-unit-tag">m³</span>
-                </div>
               </div>
 
-              <div className="calc-breakdown-table">
-                <div className="calc-item">
-                  <span>Consumption</span>
-                  <strong>{previewUsage.toFixed(2)} m³</strong>
+              <dl className="rates-breakdown">
+                <div>
+                  <dt>Consumption</dt>
+                  <dd>{previewUsage.toFixed(2)} m³</dd>
                 </div>
-                <div className="calc-item">
-                  <span>Rate per m³</span>
-                  <strong>{peso(previewRate)}</strong>
+                <div>
+                  <dt>Rate per m³</dt>
+                  <dd>{peso(previewRate)}</dd>
                 </div>
-                <div className="calc-item">
-                  <span>VATable Sale</span>
-                  <strong>{peso(previewVat.vatableSale)}</strong>
+                <div>
+                  <dt>VATable sale</dt>
+                  <dd>{peso(previewVat.vatableSale)}</dd>
                 </div>
-                <div className="calc-item">
-                  <span>12% VAT (Inclusive)</span>
-                  <strong>{peso(previewVat.vatAmount)}</strong>
+                <div>
+                  <dt>12% VAT (inclusive)</dt>
+                  <dd>{peso(previewVat.vatAmount)}</dd>
                 </div>
-                <div className="calc-item calc-total-item">
-                  <span>Total Water Charge (VAT Inclusive)</span>
-                  <strong>{peso(previewVat.gross)}</strong>
+                <div className="rates-total">
+                  <dt>Total water charge <small>VAT inclusive</small></dt>
+                  <dd>{peso(previewVat.gross)}</dd>
                 </div>
-              </div>
-            </aside>
+              </dl>
+            </section>
           </div>
 
-          {/* Container 3: Rate Change History (Full Width Ledger Below) */}
-          <section className="panel rate-history compact-rate-history">
-            <div className="panel-heading">
+          <section className="panel rates-card rates-history" aria-labelledby="rate-history-title">
+            <header className="rates-card-heading">
+              <span className="rates-heading-icon"><History size={19} aria-hidden="true" /></span>
               <div>
-                <h2>Rate Change History</h2>
-                <p>Audit trail of all approved residential water tariffs</p>
+                <h2 id="rate-history-title">Rate change history</h2>
+                <p>Previously approved residential tariffs</p>
               </div>
-            </div>
+            </header>
 
             {logs.length ? (
-              <div className="table-scroll">
-                <table className="compact-history-table">
+              <div className="table-scroll rates-history-scroll" tabIndex={0} role="region" aria-labelledby="rate-history-title">
+                <table aria-labelledby="rate-history-title">
                   <thead>
                     <tr>
                       <th>Effective Date</th>
@@ -224,13 +222,13 @@ export default function RatesCharges() {
                     </tr>
                   </thead>
                   <tbody>
-                    {logs.map((log) => (
+                    {historyPage.visibleRows.map((log) => (
                       <tr key={log.id}>
                         <td>{dateLabel(log.effective_from)}</td>
-                        <td className="rate-val-cell">
+                        <td className="rates-history-rate">
                           <strong>{peso(log.rate_per_m3)} / m³</strong>
                         </td>
-                        <td className="rate-desc-cell">{log.reason}</td>
+                        <td className="rates-history-reason">{log.reason}</td>
                         <td>Administrator</td>
                         <td>{dateLabel(log.created_at)}</td>
                       </tr>
@@ -244,6 +242,7 @@ export default function RatesCharges() {
                 description="Save the first cubic rate to begin the history."
               />
             )}
+            <TablePagination {...historyPage} total={logs.length} />
           </section>
         </>
       )}

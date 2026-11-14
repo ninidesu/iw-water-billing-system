@@ -1,0 +1,302 @@
+.service-app-management {
+  container: applications / inline-size;
+  --application-selection: var(--staff-accent-soft);
+}
+
+.staff-shell[data-staff-theme='dark'] .service-app-management {
+  --application-selection: #243d59;
+}
+
+.service-app-management .staff-header-meta {
+  flex-wrap: wrap;
+}
+
+.application-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--staff-border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--staff-border);
+  gap: 1px;
+}
+
+.application-summary .application-metric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 54px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--staff-panel);
+  color: var(--staff-ink);
+  text-align: start;
+}
+
+.application-metric span {
+  color: var(--staff-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.application-metric strong {
+  flex-shrink: 0;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.service-app-management .application-metric:hover,
+.service-app-management .application-metric[aria-pressed='true'] {
+  background: var(--application-selection);
+}
+
+.service-app-management .application-metric[aria-pressed='true'] {
+  box-shadow: inset 0 -3px var(--staff-muted);
+}
+
+.service-app-management .application-metric:focus-visible {
+  outline-offset: -4px;
+}
+
+.service-app-management .app-filter-bar {
+  padding: 14px;
+  margin-block: 14px 16px;
+}
+
+.service-app-management .app-filter-bar .request-search-field {
+  min-width: 0;
+  max-width: none;
+}
+
+.service-app-management .app-filter-bar .request-search-field input {
+  min-width: 0;
+}
+
+.service-app-management .app-filter-bar .request-search-field:focus-within {
+  outline: 2px solid var(--staff-muted);
+  outline-offset: 2px;
+}
+
+.service-app-management .application-empty {
+  padding-bottom: 16px;
+  text-align: center;
+}
+
+.service-app-management .app-split-workspace {
+  grid-template-columns: minmax(240px, 31%) minmax(0, 1fr) !important;
+  align-items: start;
+}
+
+.application-picker ul {
+  list-style: none;
+  padding: 6px;
+  margin: 0;
+}
+
+.application-picker li + li {
+  margin-top: 4px;
+}
+
+.application-picker li button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--staff-ink);
+  text-align: start;
+}
+
+.application-picker li button:hover,
+.application-picker li button[aria-pressed='true'] {
+  background: var(--application-selection);
+}
+
+.application-picker li button[aria-pressed='true'] {
+  box-shadow: inset 3px 0 var(--staff-muted);
+}
+
+.application-picker li :is(strong, small) {
+  overflow-wrap: anywhere;
+}
+
+.application-picker li small {
+  grid-column: 1 / -1;
+  color: var(--staff-muted);
+}
+
+.application-picker .table-pagination {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.service-app-management .app-split-workspace > *,
+.service-app-management .compact-stage-field {
+  min-width: 0;
+}
+
+.service-app-management .table-scroll:focus-visible {
+  outline-offset: -3px;
+}
+
+.service-app-management .app-detail-column {
+  container: application-detail / inline-size;
+}
+
+.service-app-management .compact-app-detail {
+  display: grid;
+  gap: 10px;
+}
+
+.service-app-management .compact-dossier-header {
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.service-app-management .compact-detail-name {
+  font-size: 22px;
+  margin: 0 0 6px;
+}
+
+.service-app-management .compact-info-val,
+.service-app-management .compact-detail-name {
+  overflow-wrap: anywhere;
+}
+
+.service-app-management .compact-stepper {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  background: transparent;
+  border: 0;
+  padding: 4px 0 12px;
+  isolation: isolate;
+}
+
+.service-app-management .compact-stepper .compact-step {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-self: start;
+  gap: 7px;
+  padding: 0 4px;
+  white-space: normal;
+  overflow: visible;
+  text-align: center;
+  border: 0;
+  background: transparent;
+  color: var(--staff-ink);
+}
+
+.service-app-management .compact-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 13px;
+  inset-inline-start: 50%;
+  inline-size: 100%;
+  height: 2px;
+  background: var(--staff-border);
+  z-index: -1;
+}
+
+.service-app-management .compact-step.completed::after {
+  background: #16845d;
+}
+
+.service-app-management .compact-step-dot {
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+}
+
+.service-app-management .compact-note-field textarea {
+  display: block;
+  width: 100%;
+  min-height: 44px !important;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.application-update-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 8px 10px;
+}
+
+.application-update-actions .compact-note-field {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.service-app-management .compact-info-card,
+.service-app-management .compact-action-card {
+  background: var(--staff-panel) !important;
+  border: 0;
+  border-block-start: 1px solid var(--staff-border);
+  border-radius: 0;
+  padding: 14px 0;
+}
+
+.service-app-management .compact-action-card {
+  padding-block-end: 0;
+}
+
+.service-app-management .compact-subpanels:empty {
+  display: none;
+}
+
+@container applications (max-width: 940px) {
+  .service-app-management .app-split-workspace {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@container applications (max-width: 640px) {
+  .application-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .service-app-management .app-filter-bar .request-search-field {
+    flex-basis: 100%;
+  }
+
+  .service-app-management .app-filter-bar .table-filter {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+
+  .service-app-management .app-filter-bar .table-filter select {
+    width: 100%;
+  }
+}
+
+@container application-detail (max-width: 480px) {
+  .service-app-management .compact-stepper {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .service-app-management .compact-step::after {
+    display: none;
+  }
+
+  .service-app-management .compact-info-row,
+  .service-app-management .compact-stage-row,
+  .service-app-management .compact-add-doc-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .service-app-management .compact-meter-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

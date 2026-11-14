@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Building,
   CheckCircle2,
   ClipboardList,
   Columns,
@@ -9,15 +8,11 @@ import {
   FileCheck2,
   FileText,
   Gauge,
-  Home,
   LayoutList,
-  MapPin,
-  Phone,
   Plus,
   Search,
   Table,
   UserRound,
-  Wrench,
   X,
 } from 'lucide-react'
 import ConnectionOffer from '../../components/ConnectionOffer.jsx'
@@ -27,6 +22,7 @@ import { EmptyState, Loading, Notice, PageHeader } from '../../components/UI.jsx
 import Modal from '../../components/Modal.jsx'
 import { dateLabel, errorMessage, formatApplicationRef } from '../../lib/format.js'
 import { useAuth } from '../../context/AuthContext.jsx'
+import './service-applications.css'
 
 const applicationStates = [
   'received',
@@ -82,7 +78,7 @@ export default function ServiceApplications({ embedded = false }) {
 
   return (
     <div className={embedded ? 'embedded-requests service-app-management' : 'page-content service-app-management'}>
-      <PageHeader title="Service Applications" />
+      <PageHeader title="Service Applications" description="Review connection requests and track their progress through installation." />
 
       {showIntake && (
         <WalkInApplicationModal
@@ -213,63 +209,56 @@ function ApplicationPipelineWorkspace({ role, onModified, showIntake, onToggleIn
     <>
       <Notice type="error">{error}</Notice>
 
-      {/* Top Summary Cards - Copied exact structure and styling from other tabs */}
-      <div className="kpi-stats-grid">
-        <div
-          className={`stat-card ${stageFilter === 'all' ? 'active-stat-card' : ''}`}
-          style={{ cursor: 'pointer' }}
+      <div className="application-summary" role="group" aria-label="Filter applications by stage">
+        <button
+          type="button"
+          className="application-metric"
+          aria-pressed={stageFilter === 'all'}
           onClick={() => setStageFilter('all')}
         >
-          <div className="stat-top-info">
-            <span className="stat-label">Total Applications</span>
-            <span className="stat-subtext">All submitted requests</span>
-          </div>
-          <strong className="stat-value-bottom-right">{counts.all}</strong>
-        </div>
+          <span>Total Applications</span>
+          <strong>{counts.all}</strong>
+        </button>
 
-        <div
-          className={`stat-card ${stageFilter === 'docs' ? 'active-stat-card' : ''}`}
-          style={{ cursor: 'pointer' }}
+        <button
+          type="button"
+          className="application-metric"
+          aria-pressed={stageFilter === 'docs'}
           onClick={() => setStageFilter(stageFilter === 'docs' ? 'all' : 'docs')}
         >
-          <div className="stat-top-info">
-            <span className="stat-label">Under Review & Inspection</span>
-            <span className="stat-subtext">{counts.docs + counts.inspection} pending review</span>
-          </div>
-          <strong className="stat-value-bottom-right">{counts.docs + counts.inspection}</strong>
-        </div>
+          <span>Review & inspection</span>
+          <strong>{counts.docs + counts.inspection}</strong>
+        </button>
 
-        <div
-          className={`stat-card ${stageFilter === 'installation' ? 'active-stat-card' : ''}`}
-          style={{ cursor: 'pointer' }}
+        <button
+          type="button"
+          className="application-metric"
+          aria-pressed={stageFilter === 'installation'}
           onClick={() => setStageFilter(stageFilter === 'installation' ? 'all' : 'installation')}
         >
-          <div className="stat-top-info">
-            <span className="stat-label">Pending Installation</span>
-            <span className="stat-subtext">{counts.installation} awaiting meter install</span>
-          </div>
-          <strong className="stat-value-bottom-right">{counts.installation}</strong>
-        </div>
+          <span>Pending installation</span>
+          <strong>{counts.installation}</strong>
+        </button>
 
-        <div
-          className={`stat-card ${stageFilter === 'activated' ? 'active-stat-card' : ''}`}
-          style={{ cursor: 'pointer' }}
+        <button
+          type="button"
+          className="application-metric"
+          aria-pressed={stageFilter === 'activated'}
           onClick={() => setStageFilter(stageFilter === 'activated' ? 'all' : 'activated')}
         >
-          <div className="stat-top-info">
-            <span className="stat-label">Activated Accounts</span>
-            <span className="stat-subtext">{counts.activated} active connections</span>
-          </div>
-          <strong className="stat-value-bottom-right">{counts.activated}</strong>
-        </div>
+          <span>Activated accounts</span>
+          <strong>{counts.activated}</strong>
+        </button>
       </div>
 
       {/* Filter Toolbar without duplicate pills */}
-      <div className="request-filter-bar app-filter-bar" style={{ marginTop: 14 }}>
+      <div className="panel request-filter-bar app-filter-bar">
         <div className="request-subfilters">
           <label className="search-field request-search-field">
-            <Search size={18} />
+            <Search size={18} aria-hidden="true" />
             <input
+              type="search"
+              aria-label="Search applications"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search reference, applicant, or address..."
@@ -318,7 +307,7 @@ function ApplicationPipelineWorkspace({ role, onModified, showIntake, onToggleIn
             onClick={onToggleIntake}
             style={{ whiteSpace: 'nowrap' }}
           >
-            <Plus size={16} /> Record New Application
+            <Plus size={16} aria-hidden="true" /> New application
           </button>
 
           <div className="view-switch-icon-only" role="group" aria-label="Table view mode">
@@ -349,16 +338,17 @@ function ApplicationPipelineWorkspace({ role, onModified, showIntake, onToggleIn
       {!rows && !error ? (
         <Loading label="Loading applications..." />
       ) : filtered.length === 0 ? (
-        <section className="panel">
+        <section className="panel application-empty">
           <EmptyState
-            title="No matching service applications"
-            description="Adjust your search term or pipeline stage filter to find records."
+            title={hasActiveFilters ? 'No matching applications' : 'No applications on this page'}
+            description={hasActiveFilters ? 'Clear your filters to see more records.' : 'Use New application to add a request.'}
           />
+          {hasActiveFilters && <button type="button" className="button button-ghost" onClick={resetFilters}>Clear filters</button>}
         </section>
       ) : viewMode === 'table' ? (
         /* FULL TABLE VIEW (Few columns only) */
         <section className="panel app-full-table-panel">
-          <div className="table-scroll">
+          <div className="table-scroll" tabIndex={0} role="region" aria-label="Service applications table">
             <table className="app-table">
               <thead>
                 <tr>
@@ -420,50 +410,19 @@ function ApplicationPipelineWorkspace({ role, onModified, showIntake, onToggleIn
           </div>
         </section>
       ) : (
-        /* SPLIT WORKSPACE: Left side is TABLE with few columns only */
         <div className="request-split-workspace app-split-workspace">
-          <aside className="panel app-table-column" aria-label="Applications table">
-            <div className="table-scroll app-table-scroll">
-              <table className="app-table">
-                <thead>
-                  <tr>
-                    <th>Ref No.</th>
-                    <th>Applicant</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((row) => {
-                    const isSelected = selected?.id === row.id
-                    return (
-                      <tr
-                        key={row.id}
-                        className={`clickable-row ${isSelected ? 'selected-row' : ''}`}
-                        tabIndex="0"
-                        onClick={() => setSelectedId(row.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') setSelectedId(row.id)
-                        }}
-                      >
-                        <td>
-                          <span className="request-ref-code">{formatApplicationRef(row.reference_no)}</span>
-                        </td>
-                        <td>
-                          <span className="app-table-applicant-name" title={row.applicant_name || 'Walk-In'}>
-                            {row.applicant_name || 'Walk-In'}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`status-badge ${statusTone(row.status)}`}>
-                            {row.status.replaceAll('_', ' ')}
-                          </span>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
+          <aside className="panel application-picker" aria-label="Application list">
+            <ul>
+              {filtered.map((row) => (
+                <li key={row.id}>
+                  <button type="button" aria-pressed={selected?.id === row.id} onClick={() => setSelectedId(row.id)}>
+                    <strong>{row.applicant_name || 'Walk-In'}</strong>
+                    <span className={`status-badge ${statusTone(row.status)}`}>{row.status.replaceAll('_', ' ')}</span>
+                    <small>{formatApplicationRef(row.reference_no)} · {extractPropertyType(row.notes)} · {channelLabel(row.channel)}</small>
+                  </button>
+                </li>
+              ))}
+            </ul>
 
             <div className="table-pagination">
               <button
@@ -576,17 +535,17 @@ function ApplicationDetail({ row, role, saved }) {
       {/* 1. Compact Header */}
       <header className="compact-dossier-header">
         <div className="compact-header-main">
+          <h2 className="compact-detail-name">{row.applicant_name || 'Walk-In Applicant'}</h2>
           <div className="compact-title-line">
-            <h2 className="compact-detail-name">{row.applicant_name || 'Walk-In Applicant'}</h2>
             <span className="request-ref-badge">{formatApplicationRef(row.reference_no)}</span>
             <span className={`prop-badge prop-${propType.toLowerCase()}`}>
-              {propType === 'Commercial' ? <Building size={12} /> : <Home size={12} />} {propType}
+              {propType}
             </span>
             <span className={`channel-tag channel-${row.channel || 'online'}`}>
               {channelLabel(row.channel)}
             </span>
+            <span className="compact-header-date">Updated {dateLabel(row.updated_at)}</span>
           </div>
-          <span className="compact-header-date">Updated {dateLabel(row.updated_at)}</span>
         </div>
         <span className={`status-badge ${statusTone(row.status)}`}>
           {row.status.replaceAll('_', ' ')}
@@ -600,8 +559,9 @@ function ApplicationDetail({ row, role, saved }) {
           const isCurrent = activeStepIndex === index && row.status !== 'activated'
           const stateClass = isCurrent ? 'current' : isCompleted ? 'completed' : ''
           return (
-            <div key={step.id} className={`compact-step ${stateClass}`}>
-              <span className="compact-step-dot">{isCompleted ? '✓' : index + 1}</span>
+            <div key={step.id} className={`compact-step ${stateClass}`} aria-current={isCurrent ? 'step' : undefined}>
+              <span className="compact-step-dot" aria-hidden="true">{isCompleted ? '✓' : index + 1}</span>
+              {isCompleted && <span className="sr-only">Completed: </span>}
               <span className="compact-step-label">{step.label}</span>
             </div>
           )
@@ -612,11 +572,11 @@ function ApplicationDetail({ row, role, saved }) {
       <div className="compact-info-card">
         <div className="compact-info-row">
           <div className="compact-info-item" style={{ flex: 1.4 }}>
-            <span className="compact-info-label"><MapPin size={13} /> Service Address</span>
+            <span className="compact-info-label">Service address</span>
             <span className="compact-info-val">{row.service_address || '—'}</span>
           </div>
           <div className="compact-info-item" style={{ flex: 1 }}>
-            <span className="compact-info-label"><Phone size={13} /> Contact</span>
+            <span className="compact-info-label">Contact</span>
             <span className="compact-info-val">
               {[row.contact_no, row.contact_email].filter(Boolean).join(' · ') || '—'}
             </span>
@@ -654,8 +614,7 @@ function ApplicationDetail({ row, role, saved }) {
       <form onSubmit={update} className="compact-action-card">
         <div className="compact-action-top">
           <div className="compact-action-heading">
-            <Wrench size={14} />
-            <strong>Pipeline Action</strong>
+            <strong>Update application</strong>
           </div>
         </div>
 
@@ -682,9 +641,6 @@ function ApplicationDetail({ row, role, saved }) {
               </select>
             </label>
 
-            <button className="button button-small" disabled={busy} type="submit">
-              {busy ? 'Saving…' : row.status === 'installation' ? 'Activate Connection' : 'Save Status'}
-            </button>
           </div>
 
           {/* Meter Installation & Account Activation Console */}
@@ -724,14 +680,21 @@ function ApplicationDetail({ row, role, saved }) {
             </div>
           )}
 
-          <div className="compact-note-field">
-            <input
-              name="message"
-              className="compact-note-input"
-              maxLength="1500"
-              defaultValue={row.customer_message || ''}
-              placeholder="Note for applicant tracking (optional)..."
-            />
+          <div className="application-update-actions">
+            <div className="compact-note-field">
+              <textarea
+                name="message"
+                className="compact-note-input"
+                aria-label="Note for applicant tracking"
+                rows={2}
+                maxLength="1500"
+                defaultValue={row.customer_message || ''}
+                placeholder="Note for applicant tracking (optional)..."
+              />
+            </div>
+            <button className="button button-small" disabled={busy} type="submit">
+              {busy ? 'Saving…' : row.status === 'installation' ? 'Activate Connection' : 'Save Status'}
+            </button>
           </div>
         </div>
       </form>

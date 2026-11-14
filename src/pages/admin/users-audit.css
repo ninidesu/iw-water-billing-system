@@ -1,0 +1,181 @@
+.staff-shell .users-audit-page {
+  container: audit / inline-size;
+  gap: 20px;
+}
+
+.users-audit-page .page-header-title,
+.users-audit-page .page-header-right {
+  min-width: 0;
+}
+
+.users-audit-page .staff-header-meta {
+  flex-wrap: wrap;
+}
+
+.audit-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.audit-summary .audit-metric {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: start;
+  gap: 6px 14px;
+  padding: 18px;
+  color: var(--staff-ink);
+}
+
+.audit-metric-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--staff-accent-soft);
+  color: var(--staff-ink);
+}
+
+.staff-shell[data-staff-theme='dark'] .users-audit-page .audit-metric-icon {
+  background: #243d59;
+  color: #e8eff6;
+}
+
+.audit-metric > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+
+.audit-metric > div > span {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.audit-metric > strong {
+  grid-column: 2;
+  align-self: end;
+  justify-self: end;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.audit-metric small {
+  color: var(--staff-muted);
+  font-size: 12px;
+}
+
+.users-audit-page .audit-toggle-bar {
+  margin-bottom: 0;
+}
+
+.users-audit-page .audit-toggle-bar .view-switch,
+.users-audit-page .audit-toolbar .mf-segmented-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+  gap: 4px;
+  border: 1px solid var(--staff-border);
+  border-radius: 12px;
+  padding: 4px;
+  background: var(--staff-panel);
+}
+
+.users-audit-page .audit-toggle-bar .view-switch button,
+.users-audit-page .audit-toolbar .mf-segmented-tabs button {
+  min-height: 44px;
+  border-radius: 8px;
+  white-space: normal;
+}
+
+.users-audit-page .audit-panel-head {
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  border-color: var(--staff-border);
+}
+
+.users-audit-page .audit-panel-head h2 {
+  color: var(--staff-ink);
+}
+
+.users-audit-page .audit-panel-head p {
+  color: var(--staff-muted);
+}
+
+.users-audit-page .audit-count-pill {
+  background: var(--staff-field);
+  color: var(--staff-ink);
+}
+
+.users-audit-page .audit-toolbar {
+  background: var(--staff-field);
+  border-color: var(--staff-border);
+}
+
+.users-audit-page .audit-search-field {
+  flex-basis: 260px;
+  min-width: 0;
+  height: 44px;
+  border-color: var(--staff-border);
+}
+
+.users-audit-page .audit-search-field:focus-within {
+  outline: 2px solid var(--staff-muted);
+  outline-offset: 2px;
+}
+
+.staff-shell .users-audit-page .audit-search-field input {
+  min-width: 0;
+  background: transparent;
+  color: var(--staff-ink);
+}
+
+.users-audit-page .audit-table-wrap:focus-visible {
+  outline-offset: -3px;
+}
+
+.users-audit-page .staff-directory-table {
+  min-width: 34rem;
+}
+
+.users-audit-page .activity-log-table {
+  min-width: 57rem !important;
+}
+
+.users-audit-page .audit-clean-table :is(th, td) {
+  border-color: var(--staff-border);
+}
+
+.users-audit-page .audit-clean-table :is(.activity-detail-text, .audit-actor-name, .request-ref-code) {
+  color: var(--staff-ink);
+}
+
+.users-audit-page .audit-clean-table .activity-detail-text {
+  overflow-wrap: anywhere;
+}
+
+@container audit (max-width: 640px) {
+  .audit-summary {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .audit-summary .audit-metric {
+    padding: 12px 14px;
+  }
+
+  .users-audit-page .audit-toolbar {
+    padding: 12px;
+  }
+
+  .users-audit-page .audit-toggle-bar .view-switch {
+    width: 100%;
+  }
+
+  .users-audit-page .audit-toggle-bar .view-switch button {
+    flex: 1 1 130px;
+    justify-content: center;
+  }
+}

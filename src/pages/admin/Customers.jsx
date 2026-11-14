@@ -409,7 +409,7 @@ export default function Customers() {
                             </td>
                             <td>
                               <Link
-                                className="link-button"
+                                className="link-button open-account-action"
                                 to={customer.id}
                                 onClick={(e) => e.stopPropagation()}
                               >

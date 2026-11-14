@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   AlertTriangle,
@@ -10,8 +11,10 @@ import {
   ClipboardList,
   LogOut,
   Menu,
+  Moon,
   PanelLeft,
   Settings2,
+  Sun,
   SlidersHorizontal,
   Users,
   Wallet,
@@ -20,6 +23,7 @@ import {
 import { useAuth } from '../context/AuthContext.jsx'
 import { usePreferences } from '../lib/preferences.js'
 import { supabase } from '../lib/supabaseClient.js'
+import './staff-theme.css'
 
 const adminSections = [
   {
@@ -103,6 +107,45 @@ export default function Sidebar({ area }) {
   const [open, setOpen] = useState(false)
   const [collapsed, setCollapsed] = useState({})
   const [badges, setBadges] = useState({})
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem('iw_overview_theme') === 'dark' ? 'dark' : 'light' } catch { return 'light' }
+  })
+  const [themeAnimating, setThemeAnimating] = useState(false)
+
+  const themeLabel = theme === 'dark' ? 'Light mode' : 'Dark mode'
+  const ThemeIcon = theme === 'dark' ? Sun : Moon
+
+  async function toggleTheme(event) {
+    if (themeAnimating) return
+    const next = theme === 'dark' ? 'light' : 'dark'
+    const applyTheme = () => {
+      setTheme(next)
+      try { localStorage.setItem('iw_overview_theme', next) } catch {}
+    }
+    if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      applyTheme()
+      return
+    }
+
+    const button = event.currentTarget.getBoundingClientRect()
+    const x = button.left + button.width / 2
+    const y = button.top + button.height / 2
+    const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y))
+    setThemeAnimating(true)
+    const transition = document.startViewTransition(() => flushSync(applyTheme))
+    try {
+      await transition.ready
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+        { duration: 420, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' },
+      )
+      await transition.finished
+    } catch {
+      // A navigation or resize can skip the animation.
+    } finally {
+      setThemeAnimating(false)
+    }
+  }
 
   const isMinimized = Boolean(prefs.compactSidebar)
   const sidebarTheme = prefs.sidebarTheme || 'navy'
@@ -187,6 +230,7 @@ export default function Sidebar({ area }) {
       data-table-sticky={area !== 'customer' && prefs.stickyHeaders ? 'true' : undefined}
       data-table-uppercase={area !== 'customer' && prefs.uppercaseHeaders ? 'true' : undefined}
       data-theme-accent={area !== 'customer' ? prefs.themeAccent : undefined}
+      data-staff-theme={area !== 'customer' ? theme : undefined}
       data-card-radius={area !== 'customer' ? prefs.cardRadius : undefined}
       data-high-contrast={area !== 'customer' && prefs.highContrast ? 'true' : undefined}
       data-compact-sidebar={area !== 'customer' && isMinimized ? 'true' : undefined}
@@ -275,6 +319,22 @@ export default function Sidebar({ area }) {
           ))}
         </nav>
 
+        {area !== 'customer' && (
+            <div className="sidebar-bottom staff-theme-footer">
+              <button
+                type="button"
+                className="staff-theme-toggle"
+                onClick={toggleTheme}
+                aria-label={themeLabel}
+                aria-disabled={themeAnimating}
+                title={themeLabel}
+              >
+                <span className="staff-theme-icon"><ThemeIcon size={18} aria-hidden="true" /></span>
+                {!isMinimized && <span>{themeLabel}</span>}
+              </button>
+            </div>
+        )}
+
         {area === 'customer' && (
           <div className="sidebar-bottom">
             <button
@@ -292,7 +352,7 @@ export default function Sidebar({ area }) {
         )}
       </aside>
 
-      <main className="app-main">
+      <main key={location.pathname} className={`app-main ${area !== 'customer' ? 'staff-route-enter' : ''}`}>
         <Outlet />
       </main>
     </div>

@@ -31,6 +31,8 @@ import { supabase } from '../../lib/supabaseClient.js'
 import { EmptyState, Loading, Notice, PageHeader } from '../../components/UI.jsx'
 import TablePagination, { TableEmptyRows, useTablePagination } from '../../components/TablePagination.jsx'
 import StatCard from '../../components/StatCard.jsx'
+import './settings.css'
+import './users-audit.css'
 import StatusBadge from '../../components/StatusBadge.jsx'
 
 function timeLabel(value) {
@@ -180,61 +182,55 @@ function UsersAuditView({ data, loading, error, refresh }) {
 
   return (
     <div className="page-content users-audit-page">
-      <PageHeader title="Users & Audit Logs" />
+      <PageHeader title="Users & Audit Logs" description="Find staff accounts and review recent payments, bills, and applications." />
       <Notice type="error">{error}</Notice>
       {loading && !data ? (
         <Loading />
       ) : (
         <>
-          {/* KPI Cards Row - Matches other tabs */}
-          <div className="kpi-stats-grid kpi-stats-grid-3">
-            <div className="stat-card">
-              <div className="stat-top-info">
-                <span className="stat-label">Administrators & Cashiers</span>
-                <span className="stat-subtext">
-                  {adminCount} Admin{adminCount === 1 ? '' : 's'} · {cashierCount} Cashier{cashierCount === 1 ? '' : 's'}
-                </span>
+          <div className="audit-summary">
+            <div className="panel audit-metric">
+              <span className="audit-metric-icon"><Users size={19} aria-hidden="true" /></span>
+              <div>
+                <span>Staff accounts</span>
+                <small>{adminCount} Admin · {cashierCount} Cashier</small>
               </div>
-              <strong className="stat-value-bottom-right">{adminCount + cashierCount}</strong>
+              <strong>{adminCount + cashierCount}</strong>
             </div>
-
-            <div className="stat-card">
-              <div className="stat-top-info">
-                <span className="stat-label">Online Customer Accounts</span>
-                <span className="stat-subtext">
-                  {customerProfilesCount === 0 ? 'No registered consumers' : 'Portal-registered consumers'}
-                </span>
+            <div className="panel audit-metric">
+              <span className="audit-metric-icon"><UserRound size={19} aria-hidden="true" /></span>
+              <div>
+                <span>Customer portal accounts</span>
               </div>
-              <strong className="stat-value-bottom-right">{customerProfilesCount}</strong>
+              <strong>{customerProfilesCount}</strong>
             </div>
-
-            <div className="stat-card">
-              <div className="stat-top-info">
-                <span className="stat-label">Recent System Events</span>
-                <span className="stat-subtext">Payments & bill issuances</span>
+            <div className="panel audit-metric">
+              <span className="audit-metric-icon"><Activity size={19} aria-hidden="true" /></span>
+              <div>
+                <span>Recent system events</span>
               </div>
-              <strong className="stat-value-bottom-right">{auditEvents.length}</strong>
+              <strong>{auditEvents.length}</strong>
             </div>
           </div>
 
           {/* Toggle Switcher: Display One Table Only at a Time */}
           <div className="audit-toggle-bar">
-            <div className="view-switch" role="tablist" aria-label="Table view switcher">
+            <div className="view-switch" role="group" aria-label="Audit view">
               <button
                 type="button"
                 className={activeTab === 'staff' ? 'active' : ''}
+                aria-pressed={activeTab === 'staff'}
                 onClick={() => setActiveTab('staff')}
               >
-                <Users size={16} /> Directory of Staff Accounts
-                <span className="audit-switch-count">{staffProfiles.length}</span>
+                <Users size={16} aria-hidden="true" /> Staff directory
               </button>
               <button
                 type="button"
                 className={activeTab === 'activity' ? 'active' : ''}
+                aria-pressed={activeTab === 'activity'}
                 onClick={() => setActiveTab('activity')}
               >
-                <Activity size={16} /> Recent Activity Log
-                <span className="audit-switch-count">{auditEvents.length}</span>
+                <Activity size={16} aria-hidden="true" /> Activity log
               </button>
             </div>
           </div>
@@ -244,7 +240,7 @@ function UsersAuditView({ data, loading, error, refresh }) {
             <section className="panel audit-panel audit-panel-full">
               <div className="audit-panel-head">
                 <div>
-                  <h2>Directory of Staff Accounts</h2>
+                  <h2 id="audit-staff-title">Staff directory</h2>
                   <p>System administrators and counter cashiers</p>
                 </div>
                 <span className="audit-count-pill">
@@ -254,15 +250,16 @@ function UsersAuditView({ data, loading, error, refresh }) {
 
               <div className="audit-toolbar">
                 <div className="audit-search-field">
-                  <Search size={15} />
+                  <Search size={15} aria-hidden="true" />
                   <input
                     type="search"
+                    aria-label="Search staff accounts"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search staff by name, role, email..."
                   />
                 </div>
-                <div className="mf-segmented-tabs" role="tablist">
+                <div className="mf-segmented-tabs" role="group" aria-label="Filter by staff role">
                   {[
                     ['all', 'All Staff'],
                     ['admin', 'Admin'],
@@ -272,6 +269,7 @@ function UsersAuditView({ data, loading, error, refresh }) {
                       key={val}
                       type="button"
                       className={roleFilter === val ? 'active' : ''}
+                      aria-pressed={roleFilter === val}
                       onClick={() => setRoleFilter(val)}
                     >
                       {label}
@@ -282,8 +280,8 @@ function UsersAuditView({ data, loading, error, refresh }) {
 
               {staffList.length ? (
                 <>
-                  <div className="table-scroll audit-table-wrap">
-                    <table className="audit-clean-table staff-directory-table">
+                  <div className="table-scroll audit-table-wrap" tabIndex={0} role="region" aria-labelledby="audit-staff-title">
+                    <table className="audit-clean-table staff-directory-table" aria-labelledby="audit-staff-title">
                       <thead>
                         <tr>
                           <th>Account Name</th>
@@ -324,7 +322,6 @@ function UsersAuditView({ data, loading, error, refresh }) {
                             </tr>
                           )
                         })}
-                        <TableEmptyRows count={staffPagination.emptyRowsCount} colSpan={3} />
                       </tbody>
                     </table>
                   </div>
@@ -338,30 +335,28 @@ function UsersAuditView({ data, loading, error, refresh }) {
             <section className="panel audit-panel audit-panel-full">
               <div className="audit-panel-head">
                 <div>
-                  <h2>Recent Activity Log</h2>
-                  <p>Live transaction stream and operations audit trail</p>
+                  <h2 id="audit-activity-title">Activity log</h2>
+                  <p>Recent payments, bill issuances, and service applications</p>
                 </div>
                 <div className="audit-panel-head-tags">
                   <span className="audit-count-pill">
                     {filteredEvents.length} event{filteredEvents.length === 1 ? '' : 's'}
-                  </span>
-                  <span className="audit-pulse-live">
-                    <i /> Live Feed
                   </span>
                 </div>
               </div>
 
               <div className="audit-toolbar">
                 <div className="audit-search-field">
-                  <Search size={15} />
+                  <Search size={15} aria-hidden="true" />
                   <input
                     type="search"
+                    aria-label="Search audit activity"
                     value={activitySearch}
                     onChange={(e) => setActivitySearch(e.target.value)}
                     placeholder="Search activity by ref no, customer, staff, or action..."
                   />
                 </div>
-                <div className="mf-segmented-tabs" role="tablist">
+                <div className="mf-segmented-tabs" role="group" aria-label="Filter by event type">
                   {[
                     ['all', 'All Activities'],
                     ['payment', 'Payments'],
@@ -372,6 +367,7 @@ function UsersAuditView({ data, loading, error, refresh }) {
                       key={val}
                       type="button"
                       className={activityFilter === val ? 'active' : ''}
+                      aria-pressed={activityFilter === val}
                       onClick={() => setActivityFilter(val)}
                     >
                       {label}
@@ -382,8 +378,8 @@ function UsersAuditView({ data, loading, error, refresh }) {
 
               {filteredEvents.length ? (
                 <>
-                  <div className="table-scroll audit-table-wrap">
-                    <table className="audit-clean-table activity-log-table">
+                  <div className="table-scroll audit-table-wrap" tabIndex={0} role="region" aria-labelledby="audit-activity-title">
+                    <table className="audit-clean-table activity-log-table" aria-labelledby="audit-activity-title">
                       <thead>
                         <tr>
                           <th>Timestamp</th>
@@ -440,7 +436,6 @@ function UsersAuditView({ data, loading, error, refresh }) {
                             </td>
                           </tr>
                         ))}
-                        <TableEmptyRows count={activityPagination.emptyRowsCount} colSpan={7} />
                       </tbody>
                     </table>
                   </div>
@@ -522,6 +517,7 @@ function AdminSettingsView({ data, refresh }) {
   const [profileError, setProfileError] = useState('')
 
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordBusy, setPasswordBusy] = useState(false)
   const [passwordNotice, setPasswordNotice] = useState('')
@@ -606,6 +602,7 @@ function AdminSettingsView({ data, refresh }) {
       const { error: updateErr } = await supabase.auth.updateUser({ password })
       if (updateErr) throw updateErr
       setPassword('')
+      setShowPassword(false)
       setConfirmPassword('')
       setPasswordNotice('Password updated successfully.')
     } catch (err) {
@@ -657,6 +654,8 @@ function AdminSettingsView({ data, refresh }) {
   }
 
   const [activeTab, setActiveTab] = useState('account')
+  const accountName = currentDisplayName || 'Administrator'
+  const accountRole = profile?.role === 'admin' || !profile?.role ? 'Admin' : profile.role
 
   const navItems = [
     { id: 'account', label: 'Account', icon: UserRound },
@@ -670,7 +669,7 @@ function AdminSettingsView({ data, refresh }) {
     <div className="page-content admin-settings-page">
       <PageHeader
         title="Settings"
-        description="Manage your account settings and set e-mail preferences."
+        description="Manage your account, business details, and how the app looks and prints."
       />
 
       <div className="shadcn-settings-layout">
@@ -682,133 +681,121 @@ function AdminSettingsView({ data, refresh }) {
               type="button"
               className={`shadcn-nav-item ${activeTab === id ? 'active' : ''}`}
               onClick={() => setActiveTab(id)}
+              aria-current={activeTab === id ? 'true' : undefined}
             >
-              <Icon size={16} strokeWidth={2} />
+              <Icon size={16} strokeWidth={2} aria-hidden="true" />
               <span>{label}</span>
             </button>
           ))}
         </nav>
 
         {/* Right Content Area */}
-        <main className="shadcn-settings-main">
+        <div className="shadcn-settings-main">
           {/* TAB 1: ACCOUNT (Merged Profile & Security) */}
           {activeTab === 'account' && (
-            <div className="shadcn-tab-pane">
-              <div className="shadcn-section-header">
-                <h2 className="shadcn-section-title">Account</h2>
-                <p className="shadcn-section-desc">Manage your profile details, display name, and password security.</p>
+            <div className="shadcn-tab-pane settings-account-pane">
+              <div className="settings-card settings-account-summary">
+                <span className="settings-avatar-circle" aria-hidden="true">{accountName.slice(0, 1).toUpperCase()}</span>
+                <div className="settings-account-identity">
+                  <strong>{accountName}</strong>
+                  <span>{user?.email}</span>
+                </div>
+                <span className="settings-account-role"><LockKeyhole size={13} aria-hidden="true" /> {accountRole}</span>
               </div>
-              <div className="shadcn-divider" />
 
-              {/* Profile Details */}
-              <Notice type="error" onClose={() => setProfileError('')}>{profileError}</Notice>
-              <Notice type="success" onClose={() => setProfileNotice('')}>{profileNotice}</Notice>
-
-              <form className="shadcn-form-stack" onSubmit={handleSaveProfile}>
-                <div className="shadcn-form-group">
-                  <label className="shadcn-form-label" htmlFor="settings-username">Username</label>
+              <form className="settings-card" onSubmit={handleSaveProfile} aria-labelledby="settings-profile-heading">
+                <header className="settings-card-heading">
+                  <h2 id="settings-profile-heading">Profile</h2>
+                  <p>How you appear to your team.</p>
+                </header>
+                {(profileError || profileNotice) && (
+                  <div className="settings-card-feedback">
+                    <Notice type="error" onClose={() => setProfileError('')}>{profileError}</Notice>
+                    <Notice type="success" onClose={() => setProfileNotice('')}>{profileNotice}</Notice>
+                  </div>
+                )}
+                <div className="settings-field-row">
+                  <div>
+                    <label className="shadcn-form-label" htmlFor="settings-username">Display name</label>
+                    <p className="shadcn-form-hint" id="settings-name-hint">Shown in audit logs, reports, and staff actions.</p>
+                  </div>
                   <input
                     id="settings-username"
                     className="shadcn-input"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Enter administrator name"
+                    aria-describedby="settings-name-hint"
                     required
                   />
-                  <p className="shadcn-form-hint">
-                    This is your public display name. It will be recorded on audit logs, reports, and staff actions.
-                  </p>
                 </div>
 
-                <div className="shadcn-form-group">
-                  <label className="shadcn-form-label" htmlFor="settings-email">Email</label>
+                <div className="settings-field-row">
+                  <div>
+                    <label className="shadcn-form-label" htmlFor="settings-email">Login email</label>
+                    <p className="shadcn-form-hint" id="settings-email-hint">Used to sign in.</p>
+                  </div>
                   <input
                     id="settings-email"
                     className="shadcn-input readonly"
                     value={user?.email || ''}
+                    aria-describedby="settings-email-hint"
                     readOnly
                   />
-                  <p className="shadcn-form-hint">
-                    Your authenticated staff login email address.
-                  </p>
                 </div>
 
-                <div className="shadcn-form-group">
-                  <label className="shadcn-form-label" htmlFor="settings-role" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    Assigned Role
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, color: '#64748B', background: '#F1F5F9', border: '1px solid #E2E8F0', padding: '1px 7px', borderRadius: 12 }}>
-                      <LockKeyhole size={11} strokeWidth={2.2} /> Locked
-                    </span>
-                  </label>
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <input
-                      id="settings-role"
-                      className="shadcn-input readonly"
-                      style={{ paddingRight: 36, cursor: 'not-allowed', backgroundColor: '#F8FAFC', color: '#64748B' }}
-                      value={(profile?.role || 'admin').toUpperCase()}
-                      readOnly
-                      disabled
-                    />
-                    <LockKeyhole size={16} strokeWidth={2} style={{ position: 'absolute', right: 12, color: '#94A3B8', pointerEvents: 'none' }} />
+                <div className="settings-field-row">
+                  <div>
+                    <span className="shadcn-form-label">Role</span>
+                    <p className="shadcn-form-hint">Permissions can’t be changed from your profile.</p>
                   </div>
-                  <p className="shadcn-form-hint">
-                    Your security access level and administrative permissions cannot be changed from profile settings.
-                  </p>
+                  <span className="settings-role-value"><LockKeyhole size={15} aria-hidden="true" /> {accountRole}</span>
                 </div>
 
-                <div className="shadcn-form-group">
-                  <label className="shadcn-form-label">Active Staff Identity</label>
-                  <div className="settings-identity-badge" style={{ marginTop: 4 }}>
-                    <span className="settings-avatar-circle">
-                      {(profile?.full_name || user?.email || 'A').slice(0, 1).toUpperCase()}
-                    </span>
-                    <div>
-                      <strong>{profile?.full_name || 'Administrator'}</strong>
-                      <small>{user?.email || 'admin@isabelwaters.com'}</small>
-                    </div>
-                    <StatusBadge status={profile?.role || 'admin'} />
-                  </div>
-                </div>
-
-                <div className="shadcn-form-actions">
+                <div className="settings-card-actions">
                   <button className="shadcn-btn-primary" type="submit" disabled={profileBusy}>
                     {profileBusy ? 'Updating…' : 'Update profile'}
                   </button>
                 </div>
               </form>
 
-              <div className="shadcn-divider" style={{ margin: '36px 0 28px' }} />
-
-              {/* Password & Security Section */}
-              <div className="shadcn-section-header" style={{ marginBottom: 16 }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: '0 0 4px' }}>Password & Security</h3>
-                <p className="shadcn-section-desc">Update your account password and security preferences.</p>
-              </div>
-
-              <Notice type="error" onClose={() => setPasswordError('')}>{passwordError}</Notice>
-              <Notice type="success" onClose={() => setPasswordNotice('')}>{passwordNotice}</Notice>
-
-              <form className="shadcn-form-stack" onSubmit={handleSavePassword}>
-                <div className="shadcn-form-group">
-                  <label className="shadcn-form-label" htmlFor="settings-password">New Password</label>
-                  <input
-                    id="settings-password"
-                    type="password"
-                    className="shadcn-input"
-                    minLength={8}
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="At least 8 characters"
-                    required
-                  />
-                  <p className="shadcn-form-hint">
-                    Use a strong passphrase with at least 8 characters including letters and numbers.
-                  </p>
+              <form className="settings-card" onSubmit={handleSavePassword} aria-labelledby="settings-password-heading">
+                <header className="settings-card-heading">
+                  <h2 id="settings-password-heading">Password</h2>
+                  <p>Choose a new password. Leave blank to keep your current one.</p>
+                </header>
+                {(passwordError || passwordNotice) && (
+                  <div className="settings-card-feedback">
+                    <Notice type="error" onClose={() => setPasswordError('')}>{passwordError}</Notice>
+                    <Notice type="success" onClose={() => setPasswordNotice('')}>{passwordNotice}</Notice>
+                  </div>
+                )}
+                <div className="settings-field-row">
+                  <label className="shadcn-form-label" htmlFor="settings-password">New password</label>
+                  <div>
+                    <div className="settings-password-field">
+                      <input
+                        id="settings-password"
+                        type={showPassword ? 'text' : 'password'}
+                        className="shadcn-input"
+                        minLength={8}
+                        autoComplete="new-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="At least 8 characters"
+                        aria-describedby="settings-password-hint"
+                        required
+                      />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} aria-controls="settings-password">
+                        {showPassword ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
+                    <p className="shadcn-form-hint" id="settings-password-hint">Use at least 8 characters. Include letters and numbers for a stronger password.</p>
+                  </div>
                 </div>
 
-                <div className="shadcn-form-group">
-                  <label className="shadcn-form-label" htmlFor="settings-confirm-password">Confirm Password</label>
+                <div className="settings-field-row">
+                  <label className="shadcn-form-label" htmlFor="settings-confirm-password">Confirm password</label>
                   <input
                     id="settings-confirm-password"
                     type="password"
@@ -820,12 +807,9 @@ function AdminSettingsView({ data, refresh }) {
                     placeholder="Repeat new password"
                     required
                   />
-                  <p className="shadcn-form-hint">
-                    Please re-type your new password to verify.
-                  </p>
                 </div>
 
-                <div className="shadcn-form-actions">
+                <div className="settings-card-actions">
                   <button className="shadcn-btn-primary" type="submit" disabled={passwordBusy}>
                     {passwordBusy ? 'Updating Password…' : 'Update password'}
                   </button>
@@ -1427,7 +1411,7 @@ function AdminSettingsView({ data, refresh }) {
               </div>
             </div>
           )}
-        </main>
+        </div>
       </div>
     </div>
   )

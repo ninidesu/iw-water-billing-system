@@ -13,7 +13,6 @@ import {
   MapPin,
   MessageSquare,
   Phone,
-  Plus,
   RefreshCw,
   Search,
   Table,
@@ -27,6 +26,7 @@ import { EmptyState, Loading, Notice, PageHeader } from '../../components/UI.jsx
 import Modal from '../../components/Modal.jsx'
 import { dateLabel, errorMessage } from '../../lib/format.js'
 import { useAuth } from '../../context/AuthContext.jsx'
+import './concerns-complaints.css'
 
 const caseStates = [
   'received',
@@ -123,7 +123,7 @@ export default function ConcernsComplaints({ embedded = false }) {
 
   return (
     <div className={embedded ? 'embedded-requests concern-desk-management' : 'page-content concern-desk-management'}>
-      <PageHeader title="Concerns & Complaints" />
+      <PageHeader title="Concerns & Complaints" description="Log customer concerns and track them through resolution." />
 
       {showIntake && (
         <WalkInConcernModal
@@ -251,87 +251,88 @@ function ConcernsDeskWorkspace({ role, onModified, showIntake, onToggleIntake })
     <>
       <Notice type="error">{error}</Notice>
 
-      {/* Top Summary Cards - Copied exact structure and styling from other tabs */}
-      <div className="kpi-stats-grid">
-        <div
-          className={`stat-card ${triageFilter === 'all' && categoryFilter === 'all' ? 'active-stat-card' : ''}`}
-          style={{ cursor: 'pointer' }}
+      <div className="concern-summary" role="group" aria-label="Filter concerns by progress">
+        <button
+          type="button"
+          className="panel concern-metric"
+          aria-pressed={triageFilter === 'all' && categoryFilter === 'all'}
           onClick={() => { setTriageFilter('all'); setCategoryFilter('all') }}
         >
           <div className="stat-top-info">
             <span className="stat-label">Total Concerns</span>
-            <span className="stat-subtext">All logged tickets</span>
           </div>
           <strong className="stat-value-bottom-right">{metrics.all}</strong>
-        </div>
+        </button>
 
-        <div
-          className={`stat-card ${triageFilter === 'active' ? 'active-stat-card' : ''}`}
-          style={{ cursor: 'pointer' }}
+        <button
+          type="button"
+          className="panel concern-metric"
+          aria-pressed={triageFilter === 'active'}
           onClick={() => { setTriageFilter(triageFilter === 'active' ? 'all' : 'active'); setCategoryFilter('all') }}
         >
           <div className="stat-top-info">
             <span className="stat-label">Active Concerns</span>
-            <span className="stat-subtext">{metrics.active} open / in progress</span>
+            <span className="stat-subtext">Open or in progress</span>
           </div>
           <strong className="stat-value-bottom-right">{metrics.active}</strong>
-        </div>
+        </button>
 
-        <div
-          className={`stat-card ${triageFilter === 'investigating' ? 'active-stat-card' : ''}`}
-          style={{ cursor: 'pointer' }}
+        <button
+          type="button"
+          className="panel concern-metric"
+          aria-pressed={triageFilter === 'investigating'}
           onClick={() => setTriageFilter(triageFilter === 'investigating' ? 'all' : 'investigating')}
         >
           <div className="stat-top-info">
             <span className="stat-label">In Field / Investigating</span>
-            <span className="stat-subtext">{metrics.investigating} dispatched crew</span>
           </div>
           <strong className="stat-value-bottom-right">{metrics.investigating}</strong>
-        </div>
+        </button>
 
-        <div
-          className={`stat-card ${triageFilter === 'resolved' ? 'active-stat-card' : ''}`}
-          style={{ cursor: 'pointer' }}
+        <button
+          type="button"
+          className="panel concern-metric"
+          aria-pressed={triageFilter === 'resolved'}
           onClick={() => setTriageFilter(triageFilter === 'resolved' ? 'all' : 'resolved')}
         >
           <div className="stat-top-info">
             <span className="stat-label">Resolved Tickets</span>
-            <span className="stat-subtext">{metrics.resolved} closed concerns</span>
           </div>
           <strong className="stat-value-bottom-right">{metrics.resolved}</strong>
-        </div>
+        </button>
       </div>
 
       {/* Category Pills & Filter Bar */}
-      <div className="request-filter-bar concern-filter-bar" style={{ marginTop: 14 }}>
+      <div className="panel request-filter-bar concern-filter-bar">
         <div className="incident-category-chips" role="group" aria-label="Filter by incident category">
           <button
             type="button"
             className={`cat-chip ${categoryFilter === 'all' ? 'active' : ''}`}
+            aria-pressed={categoryFilter === 'all'}
             onClick={() => setCategoryFilter('all')}
           >
             All Concerns
           </button>
-          {Object.entries(categoryMeta).map(([catKey, meta]) => {
-            const Icon = meta.icon
-            return (
+          {Object.entries(categoryMeta).map(([catKey, meta]) => (
               <button
                 key={catKey}
                 type="button"
-                className={`cat-chip ${meta.colorClass} ${categoryFilter === catKey ? 'active' : ''}`}
+                className={`cat-chip ${categoryFilter === catKey ? 'active' : ''}`}
+                aria-pressed={categoryFilter === catKey}
                 onClick={() => setCategoryFilter(categoryFilter === catKey ? 'all' : catKey)}
               >
-                <Icon size={14} /> {meta.short}
+                {meta.short}
               </button>
-            )
-          })}
+          ))}
         </div>
 
         <div className="request-subfilters">
 
           <label className="search-field request-search-field">
-            <Search size={18} />
+            <Search size={18} aria-hidden="true" />
             <input
+              type="search"
+              aria-label="Search concerns"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search reference, reporter, CAN, landmark..."
@@ -370,9 +371,8 @@ function ConcernsDeskWorkspace({ role, onModified, showIntake, onToggleIntake })
             type="button"
             className="button"
             onClick={onToggleIntake}
-            style={{ whiteSpace: 'nowrap' }}
           >
-            <Plus size={16} /> Log Customer Concern
+            Log Customer Concern
           </button>
 
           <div className="view-switch-icon-only" role="group" aria-label="Table view mode">
@@ -403,11 +403,12 @@ function ConcernsDeskWorkspace({ role, onModified, showIntake, onToggleIntake })
       {!rows && !error ? (
         <Loading label="Loading concerns..." />
       ) : filtered.length === 0 ? (
-        <section className="panel">
+        <section className="panel concern-empty">
           <EmptyState
-            title="No matching concerns or complaints"
-            description="Adjust your search term or filter to find records."
+            title={hasActiveFilters ? 'No matching concerns' : 'No concerns on this page'}
+            description={hasActiveFilters ? 'Clear your filters to see more records.' : 'Use Log Customer Concern to add a new record.'}
           />
+          {hasActiveFilters && <button type="button" className="button button-ghost" onClick={resetFilters}>Clear filters</button>}
         </section>
       ) : viewMode === 'table' ? (
         /* FULL TABLE VIEW (Few columns only) */

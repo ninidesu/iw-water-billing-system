@@ -1,0 +1,513 @@
+.staff-shell .sidebar .staff-theme-footer {
+  flex: none;
+  margin-top: auto;
+}
+
+.staff-shell .sidebar .sidebar-nav-scroll {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.staff-shell .sidebar .sidebar-nav-scroll .nav-label {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.sidebar .staff-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--sb-divider);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--sb-item-text) 9%, transparent);
+  color: var(--sb-item-text);
+  font-weight: 700;
+  text-align: start;
+}
+
+.sidebar .staff-theme-toggle:hover {
+  background: color-mix(in srgb, var(--sb-item-text) 17%, transparent);
+}
+
+.staff-theme-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 15%, transparent);
+}
+
+[data-compact-sidebar='true'] .sidebar .staff-theme-toggle {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.staff-shell .app-main > .page-content {
+  min-width: 0;
+  max-width: none;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+@media screen {
+  .app-shell.staff-shell[data-staff-theme='dark'] {
+    --staff-accent-soft: #1d3045;
+  }
+
+  .staff-shell[data-staff-theme='dark'] {
+    color-scheme: dark;
+    --staff-bg: #0a121c;
+    --staff-panel: #121e2c;
+    --staff-field: #172637;
+    --staff-border: #2a3d52;
+    --staff-ink: #e8eff6;
+    --staff-muted: #a3b6c9;
+    --bg: var(--staff-bg);
+    --surface: var(--staff-panel);
+    --ink: var(--staff-ink);
+    --muted: var(--staff-muted);
+    --line: var(--staff-border);
+    --navy: var(--staff-ink);
+    --blue: #8cc4ff;
+    --shadow: none;
+    background: var(--staff-bg);
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(.app-main, .page-content, .delinquent-screen) {
+    background-color: var(--staff-bg);
+    color: var(--staff-ink);
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(
+    .panel, .stat-card, .modal, .table-pagination, .admin-profile-btn, .admin-profile-dropdown,
+    .shadcn-settings-nav, .settings-choice-btn, .request-list-card, .request-detail-panel,
+    .request-update-card, .pos-bill-card, .delinquent-table-card, .delinquent-detail-panel,
+    .delinquent-form-box, .delinquent-history-card, .delinquent-bill-item, .search-field
+  ):not(.nev-donut-card, .nev-overdue-card, .nev-table-card, .nev-kpi-card) {
+    background-color: var(--staff-panel);
+    border-color: var(--staff-border);
+    color: var(--staff-ink);
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(.app-main, .modal) :is(
+    input:not([type='checkbox'], [type='radio'], [type='range'], [type='color']), select, textarea
+  ) {
+    background-color: var(--staff-field);
+    color: var(--staff-ink);
+    border-color: var(--staff-border);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .page-header h1, .panel-heading h2, .stat-card strong, .stat-label,
+    .shadcn-form-label, .unified-datetime, .admin-profile-name, .admin-dropdown-name,
+    .admin-dropdown-item, label, td, td strong
+  ) {
+    color: var(--staff-ink);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .page-description, .page-header-desc, td small, .datetime-date, .admin-profile-email, .admin-dropdown-email
+  ) {
+    color: var(--staff-muted);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(th, td, .page-header) {
+    border-color: var(--staff-border);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main th {
+    color: var(--staff-muted);
+    background-color: var(--staff-field);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main tbody tr:hover {
+    background-color: var(--staff-field);
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(.app-main, .modal) :is(.button-ghost, .button-outline) {
+    color: var(--staff-ink);
+    background-color: var(--staff-panel);
+    border-color: var(--staff-border);
+  }
+
+  /* These modules set their own light surfaces, including some important declarations. */
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .kpi-stats-grid .stat-card, .delinquent-stats-grid .stat-card, .pos-mini-stats-grid .stat-card,
+    .pos-bills-column, .pos-section-heading, .pos-search, .pos-stage-empty,
+    .delinquent-table-header, .delinquent-detail-hero, .table-toolbar, .table-date-range,
+    .request-card-item, .request-detail-column, .compact-rate-history, .calc-input-wrap,
+    .settings-table-preview-wrap, .shadcn-settings-main > section, .compact-concern-modal
+  ) {
+    background: var(--staff-panel) !important;
+    border-color: var(--staff-border) !important;
+    color: var(--staff-ink);
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(.app-main, .modal) :is(
+    .table-filter select, .table-date-range input, .pagination-size-select select,
+    .compact-field input, .calc-input-wrap input, .shadcn-input, .delinquent-age-pill.tone-neutral
+  ) {
+    background: var(--staff-field) !important;
+    color: var(--staff-ink) !important;
+    border-color: var(--staff-border) !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .delinquent-table-card tr.selected-row,
+    .delinquent-table-card tr.selected-row td, .shadcn-nav-item.active
+  ) {
+    background: #243d59 !important;
+    color: var(--staff-ink) !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .stat-value-bottom-right, .datetime-time, .pos-section-heading > span,
+    .pos-stage-empty h3, .delinquent-table-header h2, .delinquent-hero-info h2,
+    .bill-item-meta strong, .delinquent-section-title h3, .shadcn-section-title
+  ) {
+    color: var(--staff-ink) !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .stat-top-info .stat-label, .stat-subtext, .datetime-tz, .pos-terms legend,
+    .pos-methods legend, .delinquent-hero-info p, .bill-item-meta small, .shadcn-section-desc
+  ) {
+    color: var(--staff-muted) !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .link-button, .text-link, td a:not(.button), .delinquent-customer-cell strong
+  ) {
+    color: var(--blue) !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(.delinquent-stage-callout, .delinquent-hero-balance, .reconnection-policy-note) {
+    background: var(--staff-field);
+    border-color: var(--staff-border);
+    color: var(--staff-ink);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(.stage-callout-message, .delinquent-hero-balance span) {
+    color: var(--staff-ink);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(.delinquent-amount-text, .delinquent-hero-balance strong) {
+    color: #ff8c9a;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main .delinquent-stage-tag strong {
+    color: #172637;
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(.status-badge, .nev-status-pill, .audit-status-badge) {
+    background: var(--status-fill, #275586) !important;
+    border-color: transparent !important;
+    color: #fff !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(.status-paid, .status-active, .pill-paid, .audit-status-badge) {
+    --status-fill: #08734f;
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(.status-pending, .status-partial, .pill-partial) {
+    --status-fill: #8a5106;
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(
+    .status-overdue, .status-inactive, .status-rejected, .status-restricted, .status-voided, .pill-overdue
+  ) {
+    --status-fill: #ab3045;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .audit-status-badge {
+    padding: 4px 9px;
+    border-radius: 6px;
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(.nev-status-pill .pill-dot, .audit-status-badge .status-dot-active) {
+    background: currentColor;
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(.app-main, .modal) :is(
+    .button, .table-actions :is(a, button), .pos-terms button, .pos-methods button
+  ) {
+    --button-fill: #2456a6;
+    background: var(--button-fill) !important;
+    border-color: transparent !important;
+    color: #fff !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(.app-main, .modal) :is(
+    .button-ghost, .button-outline, .table-actions :is(a, button),
+    .pos-terms button:not(.active), .pos-methods button:not(.active)
+  ) {
+    --button-fill: #334e6b;
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(.app-main, .modal) :is(.button-danger, .button-danger-outline) {
+    --button-fill: #ab3045;
+  }
+
+  .staff-shell[data-staff-theme='dark'] :is(.app-main, .modal) :is(
+    .button, .table-actions :is(a, button), .pos-terms button, .pos-methods button
+  ):hover:not(:disabled) {
+    background: color-mix(in srgb, var(--button-fill) 87%, white) !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .sidebar .staff-theme-toggle {
+    background: #243d59;
+    color: #fff;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .sidebar .staff-theme-toggle:hover {
+    background: #334e6b;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .pos-customer-summary, .confirm-dialog-card, .bill-detail-drawer,
+    .compact-info-card, .compact-subpanels .compact-checklist, .view-switch-icon-only,
+    .compact-rate-editor, .compact-rate-calculator, .audit-toggle-bar .view-switch,
+    .audit-toolbar, .audit-search-field, .audit-toolbar .mf-segmented-tabs
+  ) {
+    background: var(--staff-panel) !important;
+    border-color: var(--staff-border) !important;
+    color: var(--staff-ink);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .pos-section-heading > span, .pos-cust-tag, .pos-bill-order,
+    .drawer-header, .drawer-customer-card, .drawer-data-grid, .drawer-charge-list,
+    .drawer-close-btn, .compact-meter-strip, .compact-action-card .compact-select,
+    .compact-action-card .compact-note-input, .compact-meter-strip input,
+    .compact-rate-calculator .calc-breakdown-table, .compact-history-table th,
+    .audit-switch-count, .audit-count-pill, .audit-role-badge
+  ) {
+    background: var(--staff-field) !important;
+    border-color: var(--staff-border) !important;
+    color: var(--staff-ink) !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .pos-customer:hover, .pos-bill-card:hover, .app-table tr:hover td,
+    .compact-history-table tbody tr:hover td, .audit-toolbar button:hover,
+    .view-switch-icon-only .view-icon-btn:hover, .drawer-close-btn:hover
+  ) {
+    background: #1d3045 !important;
+    border-color: var(--staff-border);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .pos-customer.selected, .app-table tr.selected-row, .app-table tr.selected-row td,
+    .view-switch-icon-only .view-icon-btn.active, .audit-toggle-bar .view-switch button.active,
+    .audit-toolbar .mf-segmented-tabs button.active
+  ) {
+    background: #243d59 !important;
+    color: var(--staff-ink) !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .pos-cust-name, .pos-bill-headline strong, .drawer-header h2, .drawer-section h4,
+    .drawer-customer-card .customer-info h3, .drawer-data-grid dd, .drawer-charge-list .charge-row,
+    .compact-info-val, .app-table-applicant-name, .compact-checklist-heading strong,
+    .rates-dashboard .panel-heading h2, .compact-rate-calculator .calc-item,
+    .compact-rate-calculator .calc-item.calc-total-item span, .compact-history-table td,
+    .audit-panel-head h2, .audit-toggle-bar .view-switch button, .audit-toolbar .mf-segmented-tabs button,
+    .view-switch-icon-only .view-icon-btn
+  ) {
+    color: var(--staff-ink) !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .pos-cust-eyebrow, .pos-bill-details small, .drawer-subtitle, .drawer-data-grid dt,
+    .drawer-customer-card .customer-info :is(p, small), .drawer-charge-list .sub-row,
+    .compact-info-label, .rates-dashboard .panel-heading p, .audit-panel-head p
+  ) {
+    color: var(--staff-muted) !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .drawer-charge-list .charge-row, .compact-history-table td, .compact-rate-calculator .calc-item
+  ) {
+    border-color: var(--staff-border) !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    td .link-button, .app-table .request-ref-code,
+    .pos-change-cust-btn, .drawer-data-grid .highlight-usage, .compact-rate-calculator .calc-item.calc-total-item strong
+  ) {
+    color: var(--blue) !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main td a.open-account-action {
+    gap: 6px;
+    min-height: 34px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #334e6b;
+    color: #fff !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main td a.open-account-action:hover,
+  .staff-shell[data-staff-theme='dark'] .app-main td a.open-account-action:focus-visible {
+    background: #436385;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-composer-layout :is(
+    .billing-customer-search, .compact-usage-box, .compact-adjustments, .compact-tag
+  ) {
+    background: var(--staff-field);
+    border-color: var(--staff-border);
+    color: var(--staff-ink);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-composer-layout :is(
+    .billing-customer-dropdown, .compact-breakdown-card
+  ) {
+    background: var(--staff-panel);
+    border: 1px solid var(--staff-border);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-composer-layout .compact-breakdown-card {
+    border-radius: 14px;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-composer-layout :is(
+    .compact-total-box, .billing-customer-dropdown button:hover,
+    .billing-customer-dropdown button:focus-visible, .billing-customer-dropdown button[aria-selected='true']
+  ) {
+    background: #243d59;
+    border-color: var(--staff-border);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-composer-layout :is(
+    .compact-usage-box strong, .compact-tag strong, .total-amount,
+    .customer-dropdown-identity strong, .customer-dropdown-empty strong
+  ) {
+    color: var(--staff-ink);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-composer-layout :is(
+    .compact-adjustments legend, .compact-usage-box small, .compact-tag span,
+    .total-due-date, .compact-row.sub-row, .customer-dropdown-identity small
+  ) {
+    color: var(--staff-muted);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-composer-layout :is(.breakdown-card-header, .compact-row.highlight-row) {
+    border-color: var(--staff-border);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-composer-layout :is(.compact-row.prior-row, .compact-row.prior-row strong, .text-danger) {
+    color: #ff9daa !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-composer-layout .billing-active-label {
+    background: #08734f;
+    color: #fff;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main .back-to-bills-btn {
+    background: #334e6b !important;
+    border-color: transparent !important;
+    color: #fff !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main .back-to-bills-btn svg {
+    color: inherit !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main .back-to-bills-btn:hover {
+    background: #436385 !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main .table-actions .table-print-btn,
+  .staff-shell[data-staff-theme='dark'] .app-main .table-actions .table-print-btn *,
+  .staff-shell[data-staff-theme='dark'] .bill-detail-drawer :is(.drawer-print-btn, .drawer-cust-btn),
+  .staff-shell[data-staff-theme='dark'] .bill-detail-drawer :is(.drawer-print-btn, .drawer-cust-btn) * {
+    color: #fff !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-detail-drawer :is(.drawer-print-btn, .drawer-cust-btn) {
+    background: #334e6b !important;
+    border-color: transparent !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-detail-drawer :is(.drawer-print-btn, .drawer-cust-btn):hover {
+    background: #436385 !important;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-detail-drawer .drawer-balance-card {
+    --balance-fill: #442435;
+    --balance-text: #ffb7c1;
+    background: var(--balance-fill);
+    border-color: var(--staff-border);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-detail-drawer .drawer-balance-card.paid {
+    --balance-fill: #12362f;
+    --balance-text: #8ce7bf;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-detail-drawer .drawer-balance-card.pending-card {
+    --balance-fill: #42311a;
+    --balance-text: #ffd797;
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-detail-drawer .drawer-balance-card :is(.balance-meta span, .balance-meta strong, .balance-tag) {
+    color: var(--balance-text);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .bill-detail-drawer .drawer-balance-card .balance-tag {
+    background: var(--staff-panel);
+  }
+
+  .staff-shell[data-staff-theme='dark'] .app-main .drawer-charge-list .paid-row { color: #8ce7bf !important; }
+  .staff-shell[data-staff-theme='dark'] .app-main .drawer-charge-list .balance-row { color: #ffb7c1 !important; }
+
+  .staff-shell[data-staff-theme='dark'] .app-main :is(
+    .compact-rate-calculator .calc-item.calc-total-item, .compact-history-table .rate-val-cell strong
+  ) {
+    background: #243d59 !important;
+    color: var(--staff-ink) !important;
+  }
+}
+/* Tactile feedback for staff actions, including navigation controls. */
+@keyframes staff-route-enter {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.staff-shell .app-main.staff-route-enter {
+  animation: staff-route-enter 240ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+.staff-shell :is(.button, .sidebar-section-btn, .staff-theme-toggle, .nav-item) {
+  transition-property: transform, background-color, border-color, color, box-shadow;
+  transition-duration: 180ms;
+  transition-timing-function: ease;
+}
+
+.staff-shell :is(.button, .sidebar-section-btn, .staff-theme-toggle, .nav-item):active:not(:disabled) {
+  transform: scale(.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .staff-shell .app-main.staff-route-enter { animation: none; }
+  .staff-shell :is(.button, .sidebar-section-btn, .staff-theme-toggle, .nav-item):active:not(:disabled) {
+    transform: none;
+  }
+}

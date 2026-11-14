@@ -1,16 +1,42 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient.js'
 import { useAdminData } from '../../hooks/useAdminData.js'
 import { Notice, PageHeader } from '../../components/UI.jsx'
 
+const DRAFT_KEY = 'iw_add_existing_customer_draft'
+const DRAFT_FIELDS = ['name', 'mobile', 'email', 'type', 'address', 'meter', 'reading', 'connection', 'balance', 'status', 'notes']
+
 export default function AddExistingCustomer() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const formRef = useRef(null)
   const { refresh } = useAdminData()
   const navigate = useNavigate()
   const location = useLocation()
   const base = location.pathname.startsWith('/cashier') ? '/cashier' : '/admin'
+
+  useLayoutEffect(() => {
+    try {
+      const draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null')
+      if (!draft || !formRef.current) return
+      for (const name of DRAFT_FIELDS) {
+        const field = formRef.current.elements.namedItem(name)
+        if (field && typeof draft[name] === 'string') field.value = name === 'mobile' ? draft[name].replace(/\D/g, '').slice(0, 11) : draft[name]
+      }
+    } catch { /* Storage may be unavailable. */ }
+  }, [])
+
+  function saveDraft(event) {
+    const form = event.currentTarget
+    if (event.target.name === 'mobile') event.target.value = event.target.value.replace(/\D/g, '').slice(0, 11)
+    const draft = Object.fromEntries(DRAFT_FIELDS.map((name) => [name, form.elements.namedItem(name)?.value ?? '']))
+    try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft)) } catch { /* Storage may be unavailable. */ }
+  }
+
+  function clearDraft() {
+    try { sessionStorage.removeItem(DRAFT_KEY) } catch { /* Storage may be unavailable. */ }
+  }
 
   async function save(e) {
     e.preventDefault()
@@ -32,6 +58,7 @@ export default function AddExistingCustomer() {
         p_notes: f.get('notes'),
       })
       if (error) throw error
+      clearDraft()
       await refresh()
       navigate(`${base}/customers/${data}`)
     } catch (err) {
@@ -50,9 +77,9 @@ export default function AddExistingCustomer() {
       />
       <Notice type="error">{error}</Notice>
       <section className="panel" style={{ padding: 24 }}>
-        <form className="form-grid" onSubmit={save}>
+        <form ref={formRef} className="form-grid" onSubmit={save} onInput={saveDraft} onChange={saveDraft}>
           <label>Full name<input name="name" required maxLength={160} /></label>
-          <label>Active mobile number<input name="mobile" type="tel" required maxLength={24} /></label>
+          <label>Active mobile number<input name="mobile" type="tel" inputMode="numeric" pattern="[0-9]{11}" minLength={11} maxLength={11} title="Enter exactly 11 digits" required /></label>
           <label>Email address (optional)<input name="email" type="email" /></label>
           <label>Property type
             <select name="type" required>
@@ -78,7 +105,7 @@ export default function AddExistingCustomer() {
           </label>
           <label>Legacy reference / notes<input name="notes" maxLength={500} /></label>
           <div className="form-actions span-2">
-            <Link className="button button-ghost" to={`${base}/customers`}>Cancel</Link>
+            <Link className="button button-ghost" to={`${base}/customers`} onClick={clearDraft}>Cancel</Link>
             <button className="button" disabled={busy}>{busy ? 'Saving…' : 'Add existing customer'}</button>
           </div>
         </form>

@@ -14,11 +14,13 @@ export function AuthProvider({ children }) {
   const [identityError, setIdentityError] = useState('')
   const [guestFlow, setGuestFlow] = useState(false)
   const generation = useRef(0)
+  const loadedUserId = useRef(null)
   const lastRecordedRef = useRef(0)
 
   const loadIdentity = useCallback(async (currentSession) => {
     const id = ++generation.current
     if (!currentSession?.user) {
+      loadedUserId.current = null
       setSession(null)
       setProfile(null)
       setIdentityError('')
@@ -26,12 +28,14 @@ export function AuthProvider({ children }) {
       return
     }
     setSession(currentSession)
-    setLoading(true)
+    // A token refresh should not unmount the active route and discard form edits.
+    if (loadedUserId.current !== currentSession.user.id) setLoading(true)
     try {
       const { data: nextProfile, error } = await supabase.from('profiles').select('*').eq('id', currentSession.user.id).single()
       if (error) throw error
       if (!['admin', 'cashier', 'customer'].includes(nextProfile?.role)) throw new Error('Your account has no assigned role. Contact the administrator.')
       if (id === generation.current) {
+        loadedUserId.current = currentSession.user.id
         setProfile(nextProfile)
         setIdentityError('')
       }

@@ -87,9 +87,9 @@
   width: 100% !important;
   min-height: 48px !important;
   padding: 12px 14px 12px 42px !important;
-  background: #1a1a19 !important;
-  color: #ffffff !important;
-  border: 1px solid #282a2e !important;
+  background: #ffffff !important;
+  color: #0f1f3d !important;
+  border: 1px solid #b8c8d8 !important;
   border-radius: 9px !important;
   font-size: 15px !important;
   font-weight: 500 !important;
@@ -99,7 +99,11 @@
   transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
 .iw-input-dark::placeholder {
-  color: #6d7b88 !important;
+  color: #65788b !important;
+}
+.iw-input-dark:-webkit-autofill {
+  -webkit-text-fill-color: #0f1f3d !important;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
 }
 .iw-input-dark:focus {
   border-color: #1b56a8 !important;
