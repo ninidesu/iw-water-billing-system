@@ -370,8 +370,14 @@
     box-shadow: none !important;
   }
 
-  .thermal-slip + .thermal-slip {
-    break-before: page;
+  /* Each labeled receipt is a separate document page/sheet. */
+  .thermal-copies > .thermal-slip:not(:last-child) {
+    break-after: page;
+    page-break-after: always;
+  }
+  .thermal-copies > .thermal-slip:last-child {
+    break-after: auto;
+    page-break-after: auto;
   }
   .thermal-items tr,
   .thermal-section > div {

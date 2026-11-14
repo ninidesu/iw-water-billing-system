@@ -76,7 +76,7 @@ export default function Receipt() {
             <ArrowLeft size={17}/> {base === '/admin' ? 'Back to collections' : 'Back to Payment Counter'}
           </Link>
           <p className="print-toolbar-hint">
-            Format: <strong>{paperSize === '58mm' ? '58mm Roll' : paperSize === 'a4' ? 'A4 / Letter Voucher' : '80mm Roll'}</strong> · Copies: <strong>{copyList.join(' & ')}</strong>
+            Format: <strong>{paperSize === '58mm' ? '58mm Roll' : paperSize === 'a4' ? 'A4 / Letter Voucher' : '80mm Roll'}</strong> · Copies: <strong>{copyList.join(' & ')}</strong>{copyList.length > 1 && <> · Prints on 2 separate sheets</>}
           </p>
         </div>
         <button className="button" disabled={!receipt} onClick={() => window.print()}>
