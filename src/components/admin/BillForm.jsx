@@ -5,15 +5,10 @@ import { supabase } from '../../lib/supabaseClient.js'
 import { tierBreakdown } from '../../lib/tieredBilling.js'
 import { errorMessage, peso, todayISO, vatBreakdown } from '../../lib/format.js'
 import { Notice } from '../UI.jsx'
-
-const dueDate = () => {
-  const day = new Date(`${todayISO()}T12:00:00Z`)
-  day.setUTCDate(day.getUTCDate() + 14)
-  return day.toISOString().slice(0, 10)
-}
+import { billingDates, addDays, validateBillingDates } from '../../lib/billingDates.js'
 
 const initial = () => ({
-  customer_id: '', billing_month: todayISO().slice(0, 7), due_date: dueDate(),
+  customer_id: '', billing_month: todayISO().slice(0, 7), ...billingDates(todayISO().slice(0,7)), due_edited:false,
   first_previous_reading: '0', current_reading: '', usage_override: '', rate_override: '',
 })
 let cachedActiveTiers = null
@@ -22,7 +17,7 @@ export default function BillForm({ customers, bills, onSaved, printBasePath = '/
   const navigate = useNavigate()
   const [form, setForm] = useState(() => ({
     ...initial(),
-    ...(initialMonth ? { billing_month: initialMonth.slice(0, 7) } : {}),
+    ...(initialMonth ? { billing_month: initialMonth.slice(0, 7), ...billingDates(initialMonth.slice(0,7)) } : {}),
   }))
   const [search, setSearch] = useState('')
   const [tiers, setTiers] = useState(() => cachedActiveTiers || [])
@@ -63,7 +58,7 @@ export default function BillForm({ customers, bills, onSaved, printBasePath = '/
 
   useEffect(() => {
     if (initialMonth) {
-      setForm((current) => ({ ...current, billing_month: initialMonth.slice(0, 7) }))
+      setForm((current) => ({ ...current, billing_month: initialMonth.slice(0, 7), ...billingDates(initialMonth.slice(0,7)),due_edited:false }))
     }
   }, [initialMonth])
 
@@ -79,13 +74,18 @@ export default function BillForm({ customers, bills, onSaved, printBasePath = '/
   const { vatableSale, vatAmount } = vatBreakdown(charge)
   const prior = bills.filter((bill) => bill.customer_id === form.customer_id && bill.status !== 'pending').reduce((sum, bill) => sum + Number(bill.balance), 0)
   const adjusted = hasUsageOverride || hasRateOverride
-  const update = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }))
+  const update = (key) => (event) => {
+    const value=event.target.value
+    setForm(current=>({...current,[key]:value,...(key==='billing_month'?{...billingDates(value),due_edited:false}:key==='due_date'?{due_edited:true}:key==='period_end'&&!current.due_edited&&value?{due_date:addDays(value,10)}:{})}))
+  }
   const reset = () => { setForm(initial()); setSearch(''); setError('') }
 
   const save = async (event) => {
     event.preventDefault()
     setError('')
     if (!selected || selected.status !== 'active') return setError('Select an active customer.')
+    const dateIssue=validateBillingDates({month:form.billing_month,...form},false,todayISO())
+    if(dateIssue)return setError(dateIssue)
     if (!tiers.length && !hasRateOverride) return setError('No active cubic rate is configured. Ask an administrator to add one in Rates & Charges, or enter a justified one-off rate.')
     if (form.current_reading === '' || Number(form.current_reading) < previous) return setError('Current reading must be at least the previous reading.')
     if (hasUsageOverride && Number(form.usage_override) < 0) return setError('Billable usage cannot be negative.')
@@ -96,10 +96,12 @@ export default function BillForm({ customers, bills, onSaved, printBasePath = '/
     }
 
     setBusy(true)
-    const { data: id, error: saveError } = await supabase.rpc('create_staff_bill', {
+    const { data: id, error: saveError } = await supabase.rpc('create_staff_bill_period', {
       p_customer_id: selected.id,
       p_billing_month: billingMonth,
       p_due_date: form.due_date,
+      p_period_start: form.period_start,
+      p_period_end: form.period_end,
       p_current_reading: Number(form.current_reading),
       p_first_previous_reading: last ? null : previous,
       p_usage_m3: hasUsageOverride ? Number(form.usage_override) : null,
@@ -108,58 +110,8 @@ export default function BillForm({ customers, bills, onSaved, printBasePath = '/
     })
 
     if (saveError) {
-      // Check if there is an existing pending bill that can be updated directly as fallback
-      const { data: pendingBill } = await supabase
-        .from('bills')
-        .select('id, amount_paid')
-        .eq('customer_id', selected.id)
-        .eq('billing_month', billingMonth)
-        .eq('status', 'pending')
-        .maybeSingle()
-
-      if (pendingBill) {
-        const finalBal = (charge + prior) - Number(pendingBill.amount_paid || 0)
-        const finalStatus = Number(pendingBill.amount_paid || 0) >= (charge + prior) ? 'paid' : Number(pendingBill.amount_paid || 0) > 0 ? 'partial' : 'unpaid'
-        const { error: updErr } = await supabase
-          .from('bills')
-          .update({
-            due_date: form.due_date,
-            previous_reading: previous,
-            current_reading: Number(form.current_reading),
-            water_used: usage,
-            usage_m3: usage,
-            rate_per_m3: hasRateOverride ? Number(form.rate_override) : 0,
-            water_charge: charge,
-            amount: charge + prior,
-            total_amount: charge + prior,
-            balance: finalBal,
-            status: finalStatus,
-            usage_adjusted: hasUsageOverride,
-            rate_adjusted: hasRateOverride,
-            adjustment_note: adjusted ? 'Usage or cubic rate adjusted by staff' : null,
-          })
-          .eq('id', pendingBill.id)
-
-        if (!updErr) {
-          await supabase.from('bill_items').delete().eq('bill_id', pendingBill.id)
-          const items = breakdown.map((item) => ({
-            bill_id: pendingBill.id,
-            description: item.label || 'Water service',
-            quantity: item.quantity,
-            unit_rate: item.rate,
-            amount: item.amount,
-          }))
-          if (items.length) await supabase.from('bill_items').insert(items)
-          setBusy(false)
-          await onSaved()
-          navigate(`${printBasePath}/bills/${pendingBill.id}/print`)
-          return
-        }
-      }
-
       setBusy(false)
-      if (saveError.code === 'PGRST202') return setError('The staff billing adjustment migration has not been applied to Supabase yet.')
-      if (/no active water rate is configured/i.test(saveError.message || '')) return setError('Set the approved cubic rate in Admin → Rates & Charges before saving this bill.')
+      if (saveError.code === 'PGRST202') return setError('Apply the billing period dates migration in Supabase before saving this SOA.')
       return setError(saveError.code === '23505' ? 'A bill already exists for this customer and month.' : errorMessage(saveError))
     }
 
@@ -175,6 +127,7 @@ export default function BillForm({ customers, bills, onSaved, printBasePath = '/
         {adjusted && <span className="adjusted-badge">Adjusted</span>}
       </div>
       <div className="compact-breakdown-rows">
+        <div className="compact-row"><span>Billing period</span><strong>{form.period_start} – {form.period_end}</strong></div>
         <div className="compact-row">
           <span>Provider</span>
           <strong>Isabel Waters</strong>
@@ -304,14 +257,19 @@ export default function BillForm({ customers, bills, onSaved, printBasePath = '/
           <div className="form-grid-2">
             <label className="compact-field-label">
               Billing month
-              <input type="month" required value={form.billing_month} onChange={update('billing_month')} />
+              <input type="month" required min={todayISO().slice(0,7)} value={form.billing_month} onChange={update('billing_month')} />
             </label>
             <label className="compact-field-label">
               Due date
-              <input type="date" required value={form.due_date} onChange={update('due_date')} />
+              <input type="date" required min={form.period_end} value={form.due_date} onChange={update('due_date')} />
             </label>
           </div>
 
+          <div className="form-grid-2">
+            <label className="compact-field-label">Period start<input type="date" required value={form.period_start} onChange={update('period_start')}/></label>
+            <label className="compact-field-label">Period end<input type="date" required min={form.period_start} value={form.period_end} onChange={update('period_end')}/></label>
+          </div>
+          <button type="button" className="link-button" onClick={()=>setForm(current=>({...current,...billingDates(current.billing_month),due_edited:false}))}>Reset dates</button>
           <div className="compact-readings-grid">
             <label className="compact-field-label">
               Prev reading (m³)

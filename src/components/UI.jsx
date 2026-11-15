@@ -2,6 +2,7 @@ import React, { Component, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import UserMenu from './UserMenu.jsx'
+import './admin-header.css'
 
 export class ErrorBoundary extends Component {
   constructor(props) {
@@ -92,7 +93,7 @@ export function PageHeader({ title, description, action }) {
   }).format(now)
 
   return (
-    <div className="page-header">
+    <div className={`page-header${location.pathname.startsWith('/admin') ? ' admin-workspace-header' : ''}`}>
       <div className="page-header-title">
         <h1>{title}</h1>
         {description && <p className="page-header-desc">{description}</p>}
@@ -103,19 +104,19 @@ export function PageHeader({ title, description, action }) {
             <div className="unified-datetime" aria-label={`Current Manila date and time: ${timePart} PHT ${datePart}`}>
               <div className="datetime-time-row">
                 <strong className="datetime-time">{timePart}</strong>
-                <small className="datetime-tz">PHT</small>
               </div>
               <span className="datetime-date">{datePart}</span>
             </div>
             <div className="staff-header-profile-column">
               <UserMenu />
-              {action && <div className="page-header-actions">{action}</div>}
+              {action && !location.pathname.startsWith('/admin') && <div className="page-header-actions">{action}</div>}
             </div>
           </div>
         ) : (
           action && <div className="page-header-actions">{action}</div>
         )}
       </div>
+      {location.pathname.startsWith('/admin') && action && <div className="page-header-actions admin-header-actions">{action}</div>}
     </div>
   )
 }

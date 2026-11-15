@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
+import './bill-drawer.css'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, Eye, Pencil, Printer, User, Wallet, X } from 'lucide-react'
 import { billStatus, dateLabel, monthLabel, peso, vatBreakdown } from '../../lib/format.js'
@@ -21,11 +23,13 @@ export default function BillingLedger({ bills, showSearch = true, printBasePath 
   // Close drawer on Escape key
   useEffect(() => {
     if (!selectedBill) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') setSelectedBill(null)
     }
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    return () => { window.removeEventListener('keydown', handleKeyDown); document.body.style.overflow = previousOverflow }
   }, [selectedBill])
 
   // Extract unique billing months sorted descending
@@ -297,7 +301,7 @@ export default function BillingLedger({ bills, showSearch = true, printBasePath 
       </section>
 
       {/* Right Side Bill Detail View Drawer */}
-      {selectedBill && (
+      {selectedBill && createPortal(
         <div className="bill-drawer-backdrop" onClick={() => setSelectedBill(null)}>
           <aside
             className="bill-detail-drawer"
@@ -501,7 +505,7 @@ export default function BillingLedger({ bills, showSearch = true, printBasePath 
             </div>
           </aside>
         </div>
-      )}
+      , document.body)}
     </div>
   )
 }

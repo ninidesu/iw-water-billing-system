@@ -2,6 +2,8 @@ import { useEffect,useState } from 'react'
 import { supabase } from '../lib/supabaseClient.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { Notice } from './UI.jsx'
+import { FileText, CheckCheck, Plus } from 'lucide-react'
+import './request-documents.css'
 
 const textError = err => err.message || 'The request could not be completed.'
 export async function encodeFile(file) {
@@ -87,9 +89,10 @@ export default function RequestDocuments({ applicationId, reference, token, clos
   }
   if(!staff && !items.length && !error) return null
   return (
-    <section className="checklist request-checklist compact-checklist">
+    <section className="checklist request-checklist compact-checklist document-review-section">
       <div className="compact-checklist-heading">
         <strong>Requested Documents {items.length ? `(${items.length})` : ''}</strong>
+        {items.length > 0 && <span className="document-review-progress"><CheckCheck size={14}/>{items.filter(item=>['accepted','waived'].includes(item.state)).length} of {items.length} reviewed</span>}
       </div>
       <Notice type="error">{error}</Notice>
 
@@ -97,7 +100,7 @@ export default function RequestDocuments({ applicationId, reference, token, clos
         <div className="compact-doc-list">
           {items.map((item) => (
             <div className="compact-doc-item" key={item.requirement_id}>
-              <span className="compact-doc-name">{item.label}</span>
+              <span className="compact-doc-name"><FileText size={17} aria-hidden="true"/><span>{item.label}</span></span>
               <span className={`compact-doc-status status-${item.state}`}>{item.state}</span>
               {!staff && !closed && ['requested','rejected'].includes(item.state) && (
                 <label className="compact-upload-label">
@@ -175,6 +178,7 @@ export default function RequestDocuments({ applicationId, reference, token, clos
           ))}
         </div>
       )}
+      {!items.length && <p className="document-review-empty">No documents requested yet.</p>}
 
       {staff && !closed && (
         <form
@@ -194,14 +198,14 @@ export default function RequestDocuments({ applicationId, reference, token, clos
             }
           }}
         >
-          <input
+          <label className="document-request-field"><span>Request another document</span><input
             required
             name="label"
-            placeholder="Request document (e.g. Valid ID, Deed of Sale)..."
+            placeholder="e.g. Government ID or Land Title"
             maxLength="160"
-          />
+          /></label>
           <button className="button button-small" disabled={busy}>
-            + Request
+            <Plus size={16}/>{busy ? 'Saving…' : 'Request document'}
           </button>
         </form>
       )}

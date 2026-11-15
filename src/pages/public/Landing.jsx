@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { PortalFrame,PublicPage } from './PortalFrame.jsx'
+import ReferenceLanding from './ReferenceLanding.jsx'
 
 const faqs=[
   ['How do I view my water bill?','Log in, open Billing accounts, and enter your Contract Account Number (CAN). Select the account to see invoices, balance, and posted payments.'],
@@ -43,7 +44,9 @@ function SampleStatement() {
   </figure>
 }
 
-export default function Landing(){
+export default function Landing(){ return <ReferenceLanding/> }
+
+function PreviousLanding(){
   const {user}=useAuth()
   const inbox=user?'/customer/dashboard':'/login'
   const {VITE_OFFICE_ADDRESS:address,VITE_OFFICE_EMAIL:email,VITE_OFFICE_CONTACT:phone,VITE_SERVICE_ADVISORY:advisory}=import.meta.env

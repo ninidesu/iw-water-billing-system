@@ -1,0 +1,7 @@
+.collection-pos .pos-cust-tags{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:6px}
+.collection-pos .pos-cust-tag{display:inline-flex;align-items:center;white-space:normal;line-height:1.5}
+.collection-pos .pos-cust-address{display:block;flex-basis:100%;font-size:11px;line-height:1.6;color:var(--staff-muted,#647b91);overflow-wrap:anywhere;margin-top:3px}
+.collection-pos .pos-cust-info{min-width:0}
+.pos-selection-hint{font-size:10px;line-height:1.6;color:var(--staff-muted,#647b91);margin:0 16px 12px}
+.collection-pos .pos-bill-checkbox{appearance:auto;width:18px;height:18px;min-height:18px;margin:0;flex:none;accent-color:var(--staff-accent,#244e91);cursor:pointer}
+.collection-pos .pos-bill-card.bill-selected{border-color:var(--staff-accent,#6497c9)}

@@ -13,6 +13,9 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 header .w{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px;flex-wrap:wrap}
 .iw-wordmark{font:800 20px "Bricolage Grotesque",sans-serif;display:flex;gap:9px;align-items:center}
 .iw-wordmark i{width:22px;height:22px;background:var(--aqua);border-radius:50% 50% 50% 50%/62% 62% 38% 38%;display:inline-block}
+.iw-image-wordmark{flex-shrink:0;max-width:55%}
+.iw-image-wordmark img{display:block;width:220px;max-width:100%;height:auto;object-fit:contain}
+@media(max-width:600px){.iw-image-wordmark img{width:180px}}
 nav{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
 nav a{min-height:44px;padding:0 12px;display:inline-flex;align-items:center;font-weight:500;color:var(--mut);border-radius:8px}
 nav a:hover,nav a.on{color:var(--ink);background:var(--bg)}

@@ -1,0 +1,152 @@
+@scope (.blue-reference-landing) {
+  .bento-section { text-align: center; }
+  .bento-section .section-sub { margin-inline: auto; }
+  .bento-section .bento-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-rows: auto;
+    max-width: 1440px;
+    margin-inline: auto;
+  }
+  .bento-section .bento-card, .bento-section .bento-card.featured {
+    grid-row: auto;
+    min-width: 0;
+    align-items: center;
+    padding: 24px 18px;
+  }
+  .bento-card.featured .bento-title { font-size: 17px; }
+  .bento-link { justify-content: center; }
+  .faq-section .faq-contact-items {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    width: 100%;
+    max-width: 1280px;
+    margin: 48px auto 0;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    scroll-margin-top: var(--landing-header-height);
+  }
+  .faq-contact-items .emergency-card,
+  .faq-contact-items .emergency-card.urgent,
+  .faq-contact-items .emergency-card.normal { background: transparent; border: 0; border-radius: 0; padding: 12px; align-items: center; }
+  .faq-section .faq-contact-items .emergency-card h4 { color: var(--navy); }
+  .faq-section .faq-contact-items .emergency-card p { color: var(--muted); font-size: 13px; }
+  .faq-section .faq-contact-items .emergency-card .emergency-link { color: #0876a5; font-size: 13px; }
+  @media(max-width:700px) { .faq-section .faq-contact-items { grid-template-columns: 1fr; gap: 16px; } }
+  :scope { --landing-header-height: 76px; }
+  :scope section[id] {
+    min-height: calc(100dvh - var(--landing-header-height));
+    scroll-margin-top: var(--landing-header-height);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  :scope .emergency-section[id] {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-content: center;
+    align-items: stretch;
+    gap: 24px;
+    padding-top: 40px;
+  }
+  :scope .emergency-section[id] .emergency-card { min-width: 0; width: 100%; }
+  :scope .emergency-section[id] .emergency-card,
+  :scope .emergency-section[id] .emergency-card.urgent,
+  :scope .emergency-section[id] .emergency-card.normal {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  @media(max-width:700px) {
+    :scope .emergency-section[id] { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 900px) {
+    :scope { --landing-header-height: 128px; }
+    :scope section[id] { scroll-margin-top: var(--landing-header-height); }
+  }
+  .advisories-section .advisory-card.advisory-poster { padding: 0; overflow: hidden; }
+  .advisory-poster img { display: block; width: 100%; height: auto; }
+  .ticker .ticker-inner {
+    display: flex;
+    width: max-content;
+    gap: 0;
+    white-space: nowrap;
+    animation: advisory-scroll 32s linear infinite;
+  }
+  .ticker .advisory-ticker-copy { flex: none; padding-right: 100px; }
+  .ticker:hover .ticker-inner { animation-play-state: paused; }
+  @keyframes advisory-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @media(prefers-reduced-motion: reduce) {
+    .ticker .ticker-inner { animation: none; width: auto; white-space: normal; }
+    .ticker .advisory-ticker-copy { padding-right: 0; }
+    .ticker .advisory-ticker-copy[aria-hidden] { display: none; }
+  }
+  .nav-links { gap: 18px; }
+  @media (max-width: 900px) {
+    nav { flex-wrap: wrap; height: auto; gap: 10px; padding-block: 10px; }
+    nav .nav-links { display: flex; order: 3; width: 100%; overflow-x: auto; gap: 20px; padding-block: 6px; }
+    nav .nav-links a { white-space: nowrap; font-size: 13px; }
+    section[id] { scroll-margin-top: 145px; }
+  }
+  .advisories-section { text-align: center; }
+  .advisories-section .section-sub { margin-inline: auto; }
+  .advisories-section .advisories-grid {
+    grid-template-columns: 1fr;
+    max-width: 760px;
+    margin-inline: auto;
+  }
+  .advisories-section .advisory-card { align-items: center; text-align: center; }
+  .faq-section { text-align: center; }
+  .faq-section .section-sub, .faq-section .faq-grid { margin-inline: auto; }
+  .faq-section .faq-grid { max-width: 1280px; width: 100%; align-items: start; gap: 18px; }
+  .faq-section .faq-q { justify-content: center; position: relative; padding-inline: 22px; }
+  .faq-section .faq-q svg { position: absolute; right: 0; }
+  .faq-section .faq-a { text-align: center; }
+  .faq-section .faq-item[open] { background: #fff; }
+  .pay-section { text-align: center; }
+  .pay-section .section-sub { margin-inline: auto; }
+  .pay-section .pay-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 900px;
+    margin-inline: auto;
+  }
+  .pay-section .pay-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .pay-section .pay-card p { max-width: 340px; }
+  .steps-section { text-align: center; }
+  .steps-section .section-sub { margin-inline: auto; }
+  .steps-section .steps-grid { margin-inline: auto; }
+  .steps-section .step { padding-inline: 16px; }
+  .steps-section .step-num { margin-inline: auto; }
+  .steps-section .step p { max-width: 300px; margin-inline: auto; }
+  .emergency-section { padding-block: 36px; gap: 20px; }
+  .emergency-section .emergency-card { padding: 20px 24px; gap: 7px; }
+  .emergency-section .emergency-card.urgent {
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.12);
+  }
+  .emergency-section .emergency-card h4,
+  .emergency-section .emergency-card.urgent h4 { color: #fff; }
+  .emergency-section .emergency-card p,
+  .emergency-section .emergency-card.urgent p { color: #d9e9f6; font-size: 13px; }
+  .emergency-section .emergency-card .emergency-link,
+  .emergency-section .emergency-card.urgent .emergency-link { color: #b2e4f8; font-size: 13px; }
+  .emergency-section .emergency-card-icon { font-size: 20px; margin-bottom: 0; }
+  @media (max-width: 440px) {
+    .pay-section .pay-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 1100px) {
+    .bento-section .bento-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 700px) {
+    .bento-section .bento-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 440px) {
+    .bento-section .bento-grid { grid-template-columns: 1fr; }
+  }
+}

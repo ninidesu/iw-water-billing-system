@@ -22,6 +22,10 @@
 @media print{@page{size:A4;margin:12mm}body{background:#fff}.sidebar,.mobile-menu,.print-toolbar,.sidebar-scrim{display:none!important}.app-shell{display:block}.app-main{width:100%}.page-content{max-width:none;padding:0}.print-sheet{border:0;box-shadow:none;max-width:none;padding:0}.print-page .notice{display:none}.print-foot{break-inside:avoid}}
 .admin-monitor{max-width:1500px}.monitor-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;margin:20px 0}.monitor-panel{padding:24px;margin-bottom:20px}.monitor-panel h2{font-size:18px;margin:0 0 16px}.monitor-panel .panel-heading h2{margin:0}.monitor-panel .panel-heading select{width:auto}.monitor-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}.monitor-filters label{font-size:12px;font-weight:700;color:var(--muted)}.monitor-filters input,.monitor-filters select{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}.bar-chart{height:220px;display:flex;align-items:end;gap:8px;border-bottom:1px solid var(--line);padding:20px 5px 0;overflow-x:auto}.bar-column{min-width:45px;flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:end;gap:5px}.bar-column>span{font-size:10px;color:var(--muted);white-space:nowrap}.bar-column>div{width:min(100%,38px);min-height:4px;border-radius:6px 6px 0 0;background:linear-gradient(#4cc0d5,#176eb5)}.bar-column small{font-size:10px;color:var(--muted);white-space:nowrap}.status-bars{display:grid;gap:20px;margin:24px 0}.status-bars>div>span{display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px}.status-bars>div>div{height:10px;background:#edf2f6;border-radius:20px;overflow:hidden}.status-bars i{display:block;height:100%;border-radius:20px}.status-paid{background:#2fa77b}.status-partial{background:#e1a841}.status-unpaid{background:#718ca6}.monitor-panel table small{display:block;color:var(--muted);font-size:11px;margin-top:3px}@media(max-width:1000px){.monitor-grid{grid-template-columns:1fr}}@media(max-width:720px){.monitor-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.monitor-panel{padding:16px}}@media(max-width:440px){.monitor-filters{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.print-grayscale{filter:grayscale(1);}
+@media print{.print-grayscale{filter:grayscale(1)!important;}}
+.print-brand .print-logo-mark{background:#eff8fc;overflow:hidden;padding:5px;}
+.print-brand .print-logo-mark img{width:100%;height:100%;display:block;object-fit:contain;}
 .tier-preview{padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:#f8fbfd;font-size:12px}.tier-preview>strong{display:block;margin-bottom:8px}.tier-preview>div{display:flex;justify-content:space-between;gap:15px;padding:6px 0;border-top:1px solid var(--line)}.tier-preview>div span{color:var(--muted)}
 .print-toolbar{gap:18px}.print-toolbar-hint{display:inline-block;margin:10px 0 0 3px;color:#7c90a0;font-size:12px}
 
@@ -271,7 +275,8 @@
 /* Sidebar container applied to Admin AND Cashier */
 .staff-shell .sidebar,
 .admin-workspace-shell .sidebar {
-  width: 264px;
+  width: clamp(220px, var(--sidebar-width, 240px), 360px);
+  height: 100dvh;
   background: var(--sb-bg) !important;
   color: var(--sb-item-text);
   padding: 20px 14px;
@@ -281,6 +286,47 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
   transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.staff-shell .sidebar-resize-handle {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+}
+.staff-shell .sidebar-resize-handle::after {
+  content: '';
+  position: absolute;
+  inset: 16px 0 16px auto;
+  width: 2px;
+  background: transparent;
+  transition: background 0.15s ease;
+}
+.staff-shell .sidebar-resize-handle:hover::after,
+.staff-shell .sidebar-resize-handle:focus-visible::after,
+.staff-shell[data-resizing-sidebar='true'] .sidebar-resize-handle::after {
+  background: var(--sb-item-active-indicator);
+}
+.staff-shell[data-resizing-sidebar='true'],
+.staff-shell[data-resizing-sidebar='true'] * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+.sidebar-drawer-close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--sb-divider);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sb-brand-text);
+}
+.sidebar-drawer-close:hover {
+  background: var(--sb-item-hover-bg);
 }
 .staff-shell .sidebar::-webkit-scrollbar,
 .admin-workspace-shell .sidebar::-webkit-scrollbar {
@@ -340,6 +386,8 @@
   font-weight: 800;
   letter-spacing: -0.01em;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .staff-shell .sidebar .brand small,
 .admin-workspace-shell .sidebar .brand small {
@@ -354,9 +402,10 @@
   width: 36px;
   height: 36px;
   border-radius: 9px;
-  background: var(--sb-brand-icon-bg) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0;
   color: #FFFFFF !important;
-  box-shadow: var(--sb-brand-icon-shadow) !important;
+  box-shadow: none !important;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -372,20 +421,20 @@
 
 /* Section Grouping & Headers */
 .sidebar-section-group {
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .sidebar-section-group + .sidebar-section-group {
-  margin-top: 14px;
+  margin-top: 8px;
 }
 .sidebar-section-header {
-  padding: 2px 2px 4px;
+  padding: 0 2px 2px;
 }
 .sidebar-section-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 6px 8px;
+  padding: 4px 8px;
   background: transparent;
   border: 0;
   color: var(--sb-section-text);
@@ -419,8 +468,8 @@
   gap: 2px;
 }
 .nested-section-links {
-  margin-left: 10px;
-  padding-left: 10px;
+  margin-left: 8px;
+  padding-left: 8px;
   border-left: 1px solid rgba(255, 255, 255, 0.08);
   transition: border-color 0.2s ease;
 }
@@ -432,6 +481,10 @@
   flex-direction: column;
   gap: 2px;
 }
+.staff-shell .sidebar .sidebar-nav-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-section-chevron) transparent;
+}
 
 /* Nav Item Styling & Animated Transitions */
 .staff-shell .sidebar .nav-item,
@@ -439,11 +492,11 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 42px;
-  padding: 9px 12px;
+  gap: 8px;
+  min-height: 36px;
+  padding: 6px 10px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--sb-item-text) !important;
   font-size: 13.5px;
   font-weight: 500;
@@ -462,7 +515,7 @@
 }
 
 .top-level-links .nav-item {
-  min-height: 44px;
+  min-height: 36px;
   font-size: 14px;
   font-weight: 600;
 }
@@ -1968,6 +2021,38 @@
 }
 
 /* 3-column Readings & Usage Grid */
+.staff-shell .account-quick-actions .account-cancel-button,
+.confirm-dialog-actions button.btn-dialog-cancel {
+  background: #991b1b;
+  border: 1px solid #991b1b;
+  color: #fff;
+  transition: background .18s ease, border-color .18s ease;
+}
+.staff-shell .account-quick-actions .account-cancel-button:hover:not(:disabled),
+.confirm-dialog-actions button.btn-dialog-cancel:hover:not(:disabled) {
+  background: #7f1d1d;
+  border-color: #7f1d1d;
+  color: #fff;
+}
+.staff-shell .account-quick-actions .account-cancel-button svg { color: currentColor; background: transparent; }
+.staff-shell .account-quick-actions .account-cancel-button:focus-visible {
+  outline: 3px solid #efb4b4;
+  outline-offset: 3px;
+}
+.staff-shell .compact-readings-grid > .compact-field-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.staff-shell .compact-readings-grid .compact-field-label > input,
+.staff-shell .compact-readings-grid .compact-usage-box {
+  margin-top: 0;
+  height: 38px;
+  min-height: 38px;
+  box-sizing: border-box;
+}
 .compact-readings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -7325,7 +7410,7 @@
 }
 .staff-shell[data-font-size='small'] .sidebar .nav-item {
   font-size: 13.5px;
-  min-height: 42px;
+  min-height: 36px;
 }
 .staff-shell[data-font-size='small'] .page-header h1 {
   font-size: 23px;
@@ -8387,6 +8472,79 @@ tr.table-empty-row td {
 .staff-shell[data-compact-sidebar='true'] .sidebar .nav-item:hover::after {
   opacity: 1;
   transform: translateY(-50%) scale(1);
+}
+
+/* Keep compact navigation comfortable to tap on small and touch screens. */
+@media (max-width: 1024px), (pointer: coarse) {
+  .staff-shell .sidebar .sidebar-nav-scroll .nav-item {
+    min-height: 44px;
+    padding: 9px 10px;
+  }
+
+  .staff-shell .sidebar .sidebar-section-btn {
+    min-height: 44px;
+  }
+}
+
+/* Tablet and phone navigation overlays the page as a full-label drawer. */
+@media (max-width: 1024px) {
+  .staff-shell {
+    flex-direction: column;
+  }
+
+  .staff-shell > .mobile-menu {
+    display: inline-flex;
+    position: sticky;
+    top: 0;
+    z-index: 35;
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 16px;
+    justify-content: flex-start;
+    border: 0;
+    border-bottom: 1px solid var(--staff-border);
+    border-radius: 0;
+    background: var(--staff-panel);
+    color: var(--staff-ink);
+  }
+
+  .staff-shell .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 60;
+    width: min(300px, calc(100vw - 32px));
+    height: 100dvh;
+    padding: 16px 12px;
+    overflow: hidden;
+    visibility: hidden;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease, visibility 0s 0.25s;
+    box-shadow: 12px 0 32px rgb(6 28 48 / 18%);
+  }
+
+  .staff-shell .sidebar.sidebar-open {
+    visibility: visible;
+    transform: translateX(0);
+    transition-delay: 0s;
+  }
+
+  .staff-shell .sidebar .sidebar-nav-scroll {
+    flex: 1;
+    padding-bottom: 12px;
+  }
+
+  .staff-shell > .sidebar-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    border: 0;
+    background: rgb(6 28 48 / 58%);
+  }
+
+  .staff-shell .app-main {
+    width: 100%;
+  }
 }
 
 /* 4. High Contrast Borders */

@@ -1,0 +1,8 @@
+.expanded-record-detail h3{font-size:13px;margin:20px 0 10px;color:var(--staff-ink,var(--ink))}
+.expanded-record-detail .record-detail-note{font-size:12px;line-height:1.6;color:var(--staff-muted,var(--muted))}
+.expanded-record-detail .button{margin-top:18px}
+.record-allocation-list{list-style:none;padding:0;margin:0}
+.record-allocation-list li{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px;overflow-wrap:anywhere}
+.record-change-list>div{padding:12px 0;border-bottom:1px solid var(--line);font-size:12px;overflow-wrap:anywhere}
+.record-change-list p{display:grid;grid-template-columns:48px minmax(0,1fr);gap:8px;margin:7px 0 0;line-height:1.5;font-size:12px}
+.record-change-list p>span{color:var(--staff-muted,var(--muted));font-size:11px}

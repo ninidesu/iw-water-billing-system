@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabaseClient.js'
 import { dateISOManila, dateLabel, errorMessage, monthLabel, peso, todayISO, vatBreakdown } from '../../lib/format.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { Notice } from '../UI.jsx'
+import './collection-bill-selection.css'
 
 export default function CollectionPOS({ data, onSaved }) {
   const { profile, user } = useAuth()
@@ -17,6 +18,7 @@ export default function CollectionPOS({ data, onSaved }) {
   const collectorRole = profile?.role === 'admin' ? 'Administrator' : 'Cashier'
   const [search, setSearch] = useState('')
   const [customerId, setCustomerId] = useState('')
+  const [selectedBillIds, setSelectedBillIds] = useState([])
   const [term, setTerm] = useState('custom')
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState('Cash')
@@ -59,6 +61,8 @@ export default function CollectionPOS({ data, onSaved }) {
 
   const chooseCustomer = (account) => {
     setCustomerId(account.customer.id)
+    setSelectedBillIds(account.bills.map(bill=>bill.id))
+    requestId.current=crypto.randomUUID()
     setTerm('custom')
     setAmount(account.balance.toFixed(2))
     setTendered(account.balance.toFixed(2))
@@ -78,7 +82,13 @@ export default function CollectionPOS({ data, onSaved }) {
 
   const matches = accounts.filter(({ customer }) => `${customer.full_name} ${customer.can || ''} ${customer.meter_no || ''} ${customer.contact_no || customer.mobile_no || ''}`.toLowerCase().includes(search.trim().toLowerCase())).slice(0, 12)
   const selected = accounts.find(({ customer }) => customer.id === customerId)
-  const due = selected?.balance || 0
+  const selectedBills = selected?.bills.filter(bill=>selectedBillIds.includes(bill.id)) || []
+  const due = selectedBills.reduce((sum,bill)=>sum+Number(bill.balance),0)
+  const toggleBill = billId => {
+    const next=selectedBillIds.includes(billId)?selectedBillIds.filter(id=>id!==billId):[...selectedBillIds,billId]
+    const total=selected.bills.filter(bill=>next.includes(bill.id)).reduce((sum,bill)=>sum+Number(bill.balance),0)
+    setSelectedBillIds(next);setTerm('custom');setAmount(total.toFixed(2));setTendered(total.toFixed(2));setError('');requestId.current=crypto.randomUUID()
+  }
   const numericAmount = Number(amount || 0)
   const { vatableSale, vatAmount } = vatBreakdown(numericAmount)
   const cash = Number(tendered || 0)
@@ -88,11 +98,11 @@ export default function CollectionPOS({ data, onSaved }) {
     setTerm(value)
     if (!selected) return
     if (value === 'custom') {
-      setAmount(selected.balance.toFixed(2))
-      if (method === 'Cash') setTendered(selected.balance.toFixed(2))
+      setAmount(due.toFixed(2))
+      if (method === 'Cash') setTendered(due.toFixed(2))
       return
     }
-    const installment = Math.ceil((selected.balance / Number(value)) * 100) / 100
+    const installment = Math.ceil((due / Number(value)) * 100) / 100
     setAmount(installment.toFixed(2))
     if (method === 'Cash') setTendered(installment.toFixed(2))
   }
@@ -111,6 +121,7 @@ export default function CollectionPOS({ data, onSaved }) {
     if (event) event.preventDefault()
     setError('')
     if (!selected) return setError('Select a customer account first.')
+    if (!selectedBills.length) return setError('Select at least one unpaid bill.')
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) return setError('Enter an amount greater than zero.')
     if (numericAmount > due) return setError(`Payment cannot exceed ${peso(due)}.`)
     if (method !== 'Cash' && !reference.trim()) return setError('Enter the transaction reference number.')
@@ -124,17 +135,18 @@ export default function CollectionPOS({ data, onSaved }) {
     setBusy(true)
     setError('')
     try {
-      const { data: paymentId, error: saveError } = await supabase.rpc('record_staff_payment', {
+      const { data: paymentId, error: saveError } = await supabase.rpc('record_selected_staff_payment', {
         p_request_id: requestId.current,
         p_customer_id: selected.customer.id,
         p_amount: numericAmount,
+        p_bill_ids: selectedBills.map(bill=>bill.id),
         p_method: method,
         p_reference_no: reference.trim() || null,
         p_tendered: method === 'Cash' ? cash : null,
       })
       if (saveError) {
         setShowConfirmModal(false)
-        setError(errorMessage(saveError))
+        setError(saveError.code==='PGRST202'?'Apply the selected-bill payments database migration before recording this payment.':errorMessage(saveError))
         return
       }
       setShowConfirmModal(false)
@@ -214,20 +226,21 @@ export default function CollectionPOS({ data, onSaved }) {
                 <span className="pos-cust-tag">CAN {selected.customer.can || '—'}</span>
                 <span className="pos-cust-tag">Meter {selected.customer.meter_no || '—'}</span>
                 {selected.customer.address && (
-                  <span className="pos-cust-tag address">{selected.customer.address}</span>
+                  <span className="pos-cust-address">{selected.customer.address}</span>
                 )}
               </div>
             </div>
           </div>
         </div>
 
+        <p className="pos-selection-hint">Select the bills to pay. Partial payments apply oldest first within your selection.</p>
         <div className="pos-bill-stack">
           {selected.bills.map((bill, index) => {
             const isOverdue = bill.due_date < todayISO()
             return (
-              <article className="pos-bill-card" key={bill.id}>
+              <article className={`pos-bill-card ${selectedBillIds.includes(bill.id)?'bill-selected':''}`} key={bill.id}>
                 <div className="pos-bill-left">
-                  <span className="pos-bill-order">{index + 1}</span>
+                  <input type="checkbox" className="pos-bill-checkbox" aria-label={`Pay bill ${bill.bill_no}`} checked={selectedBillIds.includes(bill.id)} disabled={busy||showConfirmModal} onChange={()=>toggleBill(bill.id)}/>
                   <div className="pos-bill-details">
                     <div className="pos-bill-headline">
                       <strong>{bill.bill_no}</strong>
@@ -250,9 +263,9 @@ export default function CollectionPOS({ data, onSaved }) {
 
         <div className="pos-balance-total">
           <div>
-            <span className="pos-total-label">Total Balance Due</span>
+            <span className="pos-total-label">Selected Balance Due</span>
             <small className="pos-total-sub">
-              {selected.bills.length} unpaid {selected.bills.length === 1 ? 'bill' : 'bills'}
+              {selectedBills.length} of {selected.bills.length} unpaid bills selected
             </small>
           </div>
           <strong className="pos-total-amount">{peso(due)}</strong>

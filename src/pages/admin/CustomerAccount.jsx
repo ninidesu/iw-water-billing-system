@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import './account-cancel.css'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowUpRight, Check, HelpCircle, Pencil, Wallet, X } from 'lucide-react'
 import { useAdminData } from '../../hooks/useAdminData.js'
 import { useAuth } from '../../context/AuthContext.jsx'
@@ -15,6 +16,28 @@ export default function CustomerAccount() {
   const location = useLocation()
   const { profile } = useAuth()
   const { data, loading, error, refresh } = useAdminData()
+  const [resolvingAccount, setResolvingAccount] = useState(false)
+  const [resolvedCustomerId, setResolvedCustomerId] = useState(null)
+  useEffect(() => {
+    if (!data || loading) return
+    if (data.customers.some(row => row.id === id)) return
+    let live = true
+    setResolvingAccount(true)
+    setResolvedCustomerId(null)
+    async function resolve() {
+      try {
+        const cached = data.customers.find(row => row.account_id === id || row.can === id)
+        if (cached) { if (live) setResolvedCustomerId(cached.id); return }
+        if (/^[0-9a-f-]{36}$/i.test(id)) {
+          const { data: account } = await supabase.from('contract_accounts').select('legacy_customer_id').eq('id', id).maybeSingle()
+          if (live && account?.legacy_customer_id && account.legacy_customer_id !== id) setResolvedCustomerId(account.legacy_customer_id)
+        }
+        await refresh()
+      } finally { if (live) setResolvingAccount(false) }
+    }
+    resolve()
+    return () => { live = false }
+  }, [id, Boolean(data), loading, refresh])
   const [tab,setTab] = useState('billing')
   const [isEditing, setIsEditing] = useState(false)
   const [editBusy, setEditBusy] = useState(false)
@@ -158,7 +181,8 @@ export default function CustomerAccount() {
     return () => { active = false }
   }, [selected?.id])
 
-  if (loading && !data) return <div className="page-content"><Loading /></div>
+  if (resolvedCustomerId && resolvedCustomerId !== id) return <Navigate replace to={`${location.pathname.startsWith('/admin') ? '/admin' : '/cashier'}/customers/${resolvedCustomerId}`} />
+  if ((loading && !data) || resolvingAccount) return <div className="page-content"><Loading /></div>
   if (!customer) {
     if (loading) return <div className="page-content"><Loading /></div>
     return (
@@ -193,7 +217,7 @@ export default function CustomerAccount() {
               ) : (
                 <h1 id="account-information-heading">{customer.full_name}</h1>
               )}
-              <StatusBadge status={customer.status} />
+              {!isEditing && <StatusBadge status={customer.status} />}
             </div>
           </div>
           <div className="account-quick-actions">
@@ -202,7 +226,7 @@ export default function CustomerAccount() {
                 <>
                   <button
                     type="button"
-                    className="button button-ghost"
+                    className="button button-ghost account-cancel-button"
                     disabled={editBusy}
                     onClick={cancelEditing}
                   >

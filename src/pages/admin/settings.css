@@ -46,7 +46,9 @@
 }
 
 .admin-settings-page .shadcn-settings-main {
-  max-width: none;
+  width: 100%;
+  max-width: 760px;
+  min-width: 0;
   container: settings-content / inline-size;
 }
 

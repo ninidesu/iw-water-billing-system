@@ -55,10 +55,11 @@ function renderBillColumn(commands, bill, copyLabel, { left, width, top, vatable
   commands.push('0.05 0.22 0.36 rg')
   text(left, y, 'STATEMENT PERIOD', 6.5, true)
   text(left, y - 14, month(bill.billing_month), 13, true)
+  if(bill.period_start && bill.period_end) text(left,y-23,`${shortDate(bill.period_start)} - ${shortDate(bill.period_end)}`,6)
   text(right - 80, y - 8, isPending ? 'STATUS: PENDING ENCODING' : `STATUS: ${String(bill.status || 'unpaid').toUpperCase()}`, 7, true)
 
   // 4. Billed To & Bill Details
-  y -= 28
+  y -= 34
   commands.push('0.85 0.88 0.92 RG')
   line(left, y + 6, right, y + 6, 0.5)
   commands.push('0.35 0.43 0.50 rg')
@@ -167,6 +168,7 @@ function renderFullPageCopy(commands, bill, copyLabel, { width, height, isHalf, 
     commands.push('0.05 0.22 0.36 rg')
     text(ml, 518, 'STATEMENT PERIOD', 7, true)
     text(ml, 498, month(bill.billing_month), 14, true)
+    if(bill.period_start && bill.period_end) text(ml,486,`${shortDate(bill.period_start)} - ${shortDate(bill.period_end)}`,7)
     text(260, 504, isPending ? 'STATUS: PENDING ENCODING' : `STATUS: ${String(bill.status || 'unpaid').toUpperCase()}`, 8, true)
 
     commands.push('0.35 0.43 0.50 rg')
@@ -245,6 +247,7 @@ function renderFullPageCopy(commands, bill, copyLabel, { width, height, isHalf, 
     commands.push('0.05 0.22 0.36 rg')
     text(44, 720, 'STATEMENT PERIOD', 8, true)
     text(44, 696, month(bill.billing_month), 20, true)
+    if(bill.period_start && bill.period_end) text(44,678,`${shortDate(bill.period_start)} - ${shortDate(bill.period_end)}`,9)
     text(420, 704, isPending ? 'STATUS: PENDING ENCODING' : `STATUS: ${String(bill.status || 'unpaid').toUpperCase()}`, 9, true)
 
     commands.push('0.35 0.43 0.50 rg')
@@ -393,7 +396,10 @@ export function downloadBillPdf(bill, options = {}) {
     })
   }
 
-  const blob = buildPdfFile(commands.join('\n'), { width, height })
+  let stream=commands.join('\n')
+  if(options.printColorMode==='grayscale')stream=stream.replace(/([\d.]+) ([\d.]+) ([\d.]+) (rg|RG)\b/g,(_,r,g,b,op)=>`${(.299*Number(r)+.587*Number(g)+.114*Number(b)).toFixed(4)} ${op==='rg'?'g':'G'}`)
+  const blob = buildPdfFile(stream, { width, height })
+  if (options.returnBlob) return blob
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url

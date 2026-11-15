@@ -1,3 +1,4 @@
+import { TableEmptyRows } from '../../components/TablePagination.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -123,7 +124,7 @@ export default function ConcernsComplaints({ embedded = false }) {
 
   return (
     <div className={embedded ? 'embedded-requests concern-desk-management' : 'page-content concern-desk-management'}>
-      <PageHeader title="Concerns & Complaints" description="Log customer concerns and track them through resolution." />
+      <PageHeader title="Concerns & Complaints" />
 
       {showIntake && (
         <WalkInConcernModal
@@ -467,7 +468,7 @@ function ConcernsDeskWorkspace({ role, onModified, showIntake, onToggleIntake })
                     </tr>
                   )
                 })}
-              </tbody>
+              <TableEmptyRows count={Math.max(0, 25 - filtered.length)} colSpan={8} /></tbody>
             </table>
           </div>
           <div className="table-pagination">
@@ -528,7 +529,7 @@ function ConcernsDeskWorkspace({ role, onModified, showIntake, onToggleIntake })
                       </tr>
                     )
                   })}
-                </tbody>
+                <TableEmptyRows count={Math.max(0, 25 - filtered.length)} colSpan={4} /></tbody>
               </table>
             </div>
 

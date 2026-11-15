@@ -28,6 +28,7 @@ import ServiceApplications from './pages/admin/ServiceApplications.jsx'
 import ConcernsComplaints from './pages/admin/ConcernsComplaints.jsx'
 import AdminModule from './pages/admin/AdminModule.jsx'
 import RatesCharges from './pages/admin/RatesCharges.jsx'
+import Reports from './pages/admin/Reports.jsx'
 import CustomerAccount from './pages/admin/CustomerAccount.jsx'
 import AddExistingCustomer from './pages/admin/AddExistingCustomer.jsx'
 import DelinquentAccounts from './pages/admin/DelinquentAccounts.jsx'
@@ -69,6 +70,7 @@ export default function App() {
       <Route path="adjustments" element={<AdminModule module="adjustments" />} />
       <Route path="delinquent" element={<DelinquentAccounts />} />
       <Route path="rates" element={<RatesCharges />} />
+      <Route path="reports" element={<Reports />} />
       <Route path="service-requests" element={<ServiceApplications />} />
       <Route path="concerns" element={<ConcernsComplaints />} />
       <Route path="users-audit" element={<AdminModule module="usersAudit" />} />

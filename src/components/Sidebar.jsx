@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
@@ -54,8 +54,9 @@ const adminSections = [
     id: 'administration',
     title: 'Administration',
     links: [
-      { to: '/admin/rates', label: 'Rates & Charges', icon: SlidersHorizontal },
+      { to: '/admin/reports', label: 'Reports', icon: FileText },
       { to: '/admin/users-audit', label: 'Users & Audit Logs', icon: Users },
+      { to: '/admin/rates', label: 'Rates & Charges', icon: SlidersHorizontal },
       { to: '/admin/settings', label: 'Settings', icon: Settings2 },
     ],
   },
@@ -99,12 +100,22 @@ const customerSections = [
   },
 ]
 
+const SIDEBAR_MIN_WIDTH = 220
+const SIDEBAR_MAX_WIDTH = 360
+const clampSidebarWidth = (width) => Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, Number(width) || 240))
+
 export default function Sidebar({ area }) {
   const { signOut } = useAuth()
   const { prefs, updatePreferences } = usePreferences()
   const navigate = useNavigate()
   const location = useLocation()
   const [open, setOpen] = useState(false)
+  const drawerQuery = area === 'customer' ? '(max-width: 720px)' : '(max-width: 1024px)'
+  const [isDrawer, setIsDrawer] = useState(() => window.matchMedia(drawerQuery).matches)
+  const [sidebarWidth, setSidebarWidth] = useState(() => clampSidebarWidth(prefs.sidebarWidth))
+  const [resizing, setResizing] = useState(false)
+  const sidebarRef = useRef(null)
+  const resizeStartRef = useRef(null)
   const [collapsed, setCollapsed] = useState({})
   const [badges, setBadges] = useState({})
   const [theme, setTheme] = useState(() => {
@@ -147,9 +158,94 @@ export default function Sidebar({ area }) {
     }
   }
 
-  const isMinimized = Boolean(prefs.compactSidebar)
+  const isMinimized = !isDrawer && Boolean(prefs.compactSidebar)
   const sidebarTheme = prefs.sidebarTheme || 'navy'
   const sections = area === 'admin' ? adminSections : area === 'cashier' ? cashierSections : customerSections
+
+  useEffect(() => {
+    const media = window.matchMedia(drawerQuery)
+    const handleChange = () => {
+      setIsDrawer(media.matches)
+      setOpen(false)
+      resizeStartRef.current = null
+      setResizing(false)
+    }
+    handleChange()
+    media.addEventListener('change', handleChange)
+    return () => media.removeEventListener('change', handleChange)
+  }, [drawerQuery])
+
+  useEffect(() => {
+    setSidebarWidth(clampSidebarWidth(prefs.sidebarWidth))
+  }, [prefs.sidebarWidth])
+
+  useEffect(() => {
+    setOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    if (!isDrawer || !open) return
+    const previousFocus = document.activeElement
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const focusableElements = () => Array.from(sidebarRef.current?.querySelectorAll(
+      'a[href], button:not([disabled]), [tabindex="0"]',
+    ) || []).filter((element) => element.getClientRects().length > 0)
+    const focusFrame = requestAnimationFrame(() => focusableElements()[0]?.focus())
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setOpen(false)
+      }
+      if (event.key !== 'Tab') return
+      const elements = focusableElements()
+      const first = elements[0]
+      const last = elements[elements.length - 1]
+      if (!sidebarRef.current?.contains(document.activeElement) || (event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) {
+        event.preventDefault()
+        const target = event.shiftKey ? last : first
+        target?.focus()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      cancelAnimationFrame(focusFrame)
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus()
+    }
+  }, [isDrawer, open])
+
+  const resizeSidebar = (event) => {
+    const start = resizeStartRef.current
+    if (start) setSidebarWidth(clampSidebarWidth(start.width + event.clientX - start.x))
+  }
+
+  const finishResize = (event) => {
+    const start = resizeStartRef.current
+    if (!start) return
+    const width = clampSidebarWidth(start.width + event.clientX - start.x)
+    resizeStartRef.current = null
+    setResizing(false)
+    setSidebarWidth(width)
+    updatePreferences({ sidebarWidth: width })
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+  }
+
+  const handleResizeKeyDown = (event) => {
+    const widths = {
+      ArrowLeft: sidebarWidth - 16,
+      ArrowRight: sidebarWidth + 16,
+      Home: SIDEBAR_MIN_WIDTH,
+      End: SIDEBAR_MAX_WIDTH,
+    }
+    if (!(event.key in widths)) return
+    event.preventDefault()
+    const width = clampSidebarWidth(widths[event.key])
+    setSidebarWidth(width)
+    updatePreferences({ sidebarWidth: width })
+  }
 
   const toggleSection = (id) => {
     setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }))
@@ -235,11 +331,15 @@ export default function Sidebar({ area }) {
       data-high-contrast={area !== 'customer' && prefs.highContrast ? 'true' : undefined}
       data-compact-sidebar={area !== 'customer' && isMinimized ? 'true' : undefined}
       data-sidebar-theme={area !== 'customer' ? sidebarTheme : undefined}
+      data-resizing-sidebar={resizing ? 'true' : undefined}
+      style={area !== 'customer' ? { '--sidebar-width': `${sidebarWidth}px` } : undefined}
     >
       <button
         className="mobile-menu button button-ghost"
         onClick={() => setOpen(!open)}
         aria-label={open ? 'Close navigation' : 'Open navigation'}
+        aria-expanded={open}
+        aria-controls="workspace-sidebar"
       >
         {open ? <X /> : <Menu />} <span>Menu</span>
       </button>
@@ -247,13 +347,20 @@ export default function Sidebar({ area }) {
       {open && <button className="sidebar-scrim" onClick={() => setOpen(false)} aria-label="Close navigation" />}
 
       <aside
+        ref={sidebarRef}
+        id="workspace-sidebar"
         className={`sidebar ${open ? 'sidebar-open' : ''} ${isMinimized ? 'sidebar-minimized' : ''}`}
         data-sidebar-theme={area !== 'customer' ? sidebarTheme : undefined}
+        role={isDrawer ? 'dialog' : undefined}
+        aria-label="Workspace navigation"
+        aria-modal={isDrawer && open ? true : undefined}
+        aria-hidden={isDrawer && !open ? true : undefined}
+        inert={isDrawer && !open ? '' : undefined}
       >
         <div className="brand">
           <div className="brand-info">
             <span className="brand-icon" title={brandTitle}>
-              <Droplets size={20} />
+              <img src="/iw-logo.png" alt="" width="28" height="28" style={{objectFit:'contain'}} />
             </span>
             {!isMinimized && (
               <div className="brand-titles">
@@ -262,7 +369,14 @@ export default function Sidebar({ area }) {
               </div>
             )}
           </div>
-          <button
+          {isDrawer ? <button
+            type="button"
+            className="sidebar-drawer-close"
+            onClick={() => setOpen(false)}
+            aria-label="Close navigation"
+          >
+            <X size={20} />
+          </button> : <button
             type="button"
             className="sidebar-collapse-btn"
             onClick={() => updatePreferences({ compactSidebar: !isMinimized })}
@@ -270,7 +384,7 @@ export default function Sidebar({ area }) {
             aria-label={isMinimized ? 'Expand sidebar' : 'Minimize sidebar'}
           >
             <PanelLeft size={17} />
-          </button>
+          </button>}
         </div>
 
         <div className="sidebar-divider" />
@@ -350,9 +464,41 @@ export default function Sidebar({ area }) {
             </button>
           </div>
         )}
+
+        {area !== 'customer' && !isDrawer && !isMinimized && (
+          <div
+            className="sidebar-resize-handle"
+            role="separator"
+            tabIndex={0}
+            aria-label="Resize sidebar"
+            aria-controls="workspace-sidebar"
+            aria-orientation="vertical"
+            aria-valuemin={SIDEBAR_MIN_WIDTH}
+            aria-valuemax={SIDEBAR_MAX_WIDTH}
+            aria-valuenow={sidebarWidth}
+            aria-valuetext={`${sidebarWidth} pixels`}
+            title="Drag to resize. Use arrow keys when focused."
+            onPointerDown={(event) => {
+              if (event.button !== 0) return
+              event.preventDefault()
+              event.currentTarget.focus()
+              event.currentTarget.setPointerCapture(event.pointerId)
+              resizeStartRef.current = { x: event.clientX, width: sidebarWidth }
+              setResizing(true)
+            }}
+            onPointerMove={resizeSidebar}
+            onPointerUp={finishResize}
+            onPointerCancel={() => {
+              if (resizeStartRef.current) setSidebarWidth(resizeStartRef.current.width)
+              resizeStartRef.current = null
+              setResizing(false)
+            }}
+            onKeyDown={handleResizeKeyDown}
+          />
+        )}
       </aside>
 
-      <main key={location.pathname} className={`app-main ${area !== 'customer' ? 'staff-route-enter' : ''}`}>
+      <main key={location.pathname} className={`app-main ${area !== 'customer' ? 'staff-route-enter' : ''}`} inert={isDrawer && open ? '' : undefined}>
         <Outlet />
       </main>
     </div>

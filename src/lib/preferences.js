@@ -34,6 +34,7 @@ export const DEFAULT_PREFERENCES = {
   cardRadius: 'rounded', // 'compact' | 'rounded' | 'extra'
   dateFormat: 'standard', // 'standard' (Nov 10, 2026) | 'iso' (2026-11-10) | 'slash' (10/11/2026)
   compactSidebar: false,
+  sidebarWidth: 240,
   highContrast: false,
 
   // Print & Receipt Customization
@@ -44,6 +45,9 @@ export const DEFAULT_PREFERENCES = {
   printUtilityLogo: true,
   printCashierSignature: true,
   autoClearQueue: false,
+  reportPaperSize: 'a4', // 'a4' | 'letter'
+  reportOrientation: 'landscape', // 'portrait' | 'landscape'
+  printColorMode: 'color', // 'color' | 'grayscale'
 }
 
 export function getPreferences() {

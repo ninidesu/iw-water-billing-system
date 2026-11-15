@@ -1,0 +1,14 @@
+html:has(.blue-reference-landing, .reference-portal, .service-site, .iw-auth-page),
+:is(.blue-reference-landing, .reference-portal, .service-site, .iw-auth-page),
+:is(.blue-reference-landing, .reference-portal, .service-site, .iw-auth-page) * {
+  scrollbar-width: thin;
+  scrollbar-color: #6398bd #edf4fa;
+}
+html:has(.blue-reference-landing, .reference-portal, .service-site, .iw-auth-page)::-webkit-scrollbar,
+:is(.blue-reference-landing, .reference-portal, .service-site, .iw-auth-page) ::-webkit-scrollbar { width:10px; height:10px; }
+html:has(.blue-reference-landing, .reference-portal, .service-site, .iw-auth-page)::-webkit-scrollbar-track,
+:is(.blue-reference-landing, .reference-portal, .service-site, .iw-auth-page) ::-webkit-scrollbar-track { background:#edf4fa; }
+html:has(.blue-reference-landing, .reference-portal, .service-site, .iw-auth-page)::-webkit-scrollbar-thumb,
+:is(.blue-reference-landing, .reference-portal, .service-site, .iw-auth-page) ::-webkit-scrollbar-thumb { background:#6398bd; border:2px solid #edf4fa; border-radius:999px; }
+html:has(.blue-reference-landing, .reference-portal, .service-site, .iw-auth-page)::-webkit-scrollbar-thumb:hover,
+:is(.blue-reference-landing, .reference-portal, .service-site, .iw-auth-page) ::-webkit-scrollbar-thumb:hover { background:#245e8c; }

@@ -63,7 +63,7 @@ export default function Receipt() {
   const paidVat = vatBreakdown(receipt?.payment?.amount ?? 0)
 
   return (
-    <div className={`page-content print-page thermal-receipt-page receipt-size-${paperSize}`}>
+    <div className={`page-content print-page thermal-receipt-page receipt-size-${paperSize} ${prefs?.printColorMode === 'grayscale' ? 'print-grayscale' : ''}`}>
       <style>{`
         @page {
           size: ${paperSize === '58mm' ? '58mm auto' : paperSize === 'a4' ? 'letter portrait' : '80mm auto'};
@@ -90,6 +90,7 @@ export default function Receipt() {
           {copyList.map((copy) => (
             <article className={`thermal-slip thermal-slip-${paperSize}`} key={copy}>
               <header>
+                <img className="receipt-logo" src="/isabel-water-logo.png" alt="Isabel Water logo" />
                 <h1>ISABEL WATERS</h1>
                 <p>Billing & Collection</p>
                 <h2>OFFICIAL RECEIPT</h2>

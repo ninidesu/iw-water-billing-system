@@ -182,7 +182,7 @@ function UsersAuditView({ data, loading, error, refresh }) {
 
   return (
     <div className="page-content users-audit-page">
-      <PageHeader title="Users & Audit Logs" description="Find staff accounts and review recent payments, bills, and applications." />
+      <PageHeader title="Users & Audit Logs"  />
       <Notice type="error">{error}</Notice>
       {loading && !data ? (
         <Loading />
@@ -322,7 +322,7 @@ function UsersAuditView({ data, loading, error, refresh }) {
                             </tr>
                           )
                         })}
-                      </tbody>
+                      <TableEmptyRows count={staffPagination.emptyRowsCount} colSpan={3} /></tbody>
                     </table>
                   </div>
                   <TablePagination {...staffPagination} total={staffList.length} />
@@ -401,16 +401,7 @@ function UsersAuditView({ data, loading, error, refresh }) {
                               </div>
                             </td>
                             <td>
-                              <span className={`activity-pill activity-${ev.type}`}>
-                                {ev.type === 'payment' ? (
-                                  <Wallet size={13} />
-                                ) : ev.type === 'bill' ? (
-                                  <FileSpreadsheet size={13} />
-                                ) : (
-                                  <ClipboardList size={13} />
-                                )}
-                                {ev.action}
-                              </span>
+                              {ev.action}
                             </td>
                             <td>
                               <span className="request-ref-code">{ev.reference}</span>
@@ -436,7 +427,7 @@ function UsersAuditView({ data, loading, error, refresh }) {
                             </td>
                           </tr>
                         ))}
-                      </tbody>
+                      <TableEmptyRows count={activityPagination.emptyRowsCount} colSpan={7} /></tbody>
                     </table>
                   </div>
                   <TablePagination {...activityPagination} total={filteredEvents.length} />
@@ -669,7 +660,7 @@ function AdminSettingsView({ data, refresh }) {
     <div className="page-content admin-settings-page">
       <PageHeader
         title="Settings"
-        description="Manage your account, business details, and how the app looks and prints."
+        
       />
 
       <div className="shadcn-settings-layout">
@@ -1360,6 +1351,29 @@ function AdminSettingsView({ data, refresh }) {
                       >
                         <span>{opt.label}</span>
                       </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="shadcn-form-group">
+                  <label className="shadcn-form-label">Reports</label>
+                  <div className="settings-choice-grid cols-2" role="radiogroup" aria-label="Report paper size">
+                    {[{ id: 'a4', label: 'A4' }, { id: 'letter', label: 'Letter' }].map((opt) => (
+                      <button key={opt.id} type="button" role="radio" aria-checked={(prefs.reportPaperSize || 'a4') === opt.id} className={`settings-choice-btn compact ${(prefs.reportPaperSize || 'a4') === opt.id ? 'active' : ''}`} onClick={() => updatePreferences({ reportPaperSize: opt.id })}><span>{opt.label}</span></button>
+                    ))}
+                  </div>
+                  <div className="settings-choice-grid cols-2" role="radiogroup" aria-label="Report orientation" style={{ marginTop: 8 }}>
+                    {[{ id: 'portrait', label: 'Portrait' }, { id: 'landscape', label: 'Landscape' }].map((opt) => (
+                      <button key={opt.id} type="button" role="radio" aria-checked={(prefs.reportOrientation || 'landscape') === opt.id} className={`settings-choice-btn compact ${(prefs.reportOrientation || 'landscape') === opt.id ? 'active' : ''}`} onClick={() => updatePreferences({ reportOrientation: opt.id })}><span>{opt.label}</span></button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="shadcn-form-group">
+                  <label className="shadcn-form-label">Print Color</label>
+                  <div className="settings-choice-grid cols-2" role="radiogroup" aria-label="Print color mode">
+                    {[{ id: 'color', label: 'Colored' }, { id: 'grayscale', label: 'Black and white' }].map((opt) => (
+                      <button key={opt.id} type="button" role="radio" aria-checked={(prefs.printColorMode || 'color') === opt.id} className={`settings-choice-btn compact ${(prefs.printColorMode || 'color') === opt.id ? 'active' : ''}`} onClick={() => updatePreferences({ printColorMode: opt.id })}><span>{opt.label}</span></button>
                     ))}
                   </div>
                 </div>

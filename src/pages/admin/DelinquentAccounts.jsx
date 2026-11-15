@@ -20,7 +20,7 @@ import { PageHeader, Notice, Loading, EmptyState } from '../../components/UI.jsx
 import StatCard from '../../components/StatCard.jsx'
 import StatusBadge from '../../components/StatusBadge.jsx'
 import SearchSuggest from '../../components/SearchSuggest.jsx'
-import TablePagination, { useTablePagination } from '../../components/TablePagination.jsx'
+import TablePagination, { TableEmptyRows, useTablePagination } from '../../components/TablePagination.jsx'
 import './delinquent.css'
 
 const LOCAL_FOLLOWUPS_KEY = 'iw_local_collection_followups'
@@ -245,7 +245,7 @@ export default function DelinquentAccounts() {
   return (
     <div className="page-content delinquent-page">
       <div className={printing ? 'delinquent-screen printing' : 'delinquent-screen'}>
-        <PageHeader title="Overdue Accounts" description="Review overdue balances and track customer follow-ups." />
+        <PageHeader title="Overdue Accounts" />
         <Notice type="error">{error || historyError}</Notice>
 
         {loading && !data ? (
@@ -297,7 +297,7 @@ export default function DelinquentAccounts() {
                 >
                   <span className="overdue-filter-dot" aria-hidden="true" />
                   <span className="pill-label">{label}</span>
-                  <span className="pill-count">{count}</span>
+                  {count > 0 && <span className="pill-count">{count}</span>}
                 </button>
               ))}
             </div>
@@ -460,7 +460,7 @@ export default function DelinquentAccounts() {
                               </tr>
                             )
                           })}
-                        </tbody>
+                        <TableEmptyRows count={page.emptyRowsCount} colSpan={7} /></tbody>
                       </table>
                     </div>
                     <TablePagination {...page} total={rows.length} showRange={false} />

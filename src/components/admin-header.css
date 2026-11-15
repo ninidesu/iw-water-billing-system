@@ -1,0 +1,45 @@
+/* One header geometry for every admin tab, independent of page action buttons. */
+.staff-shell .page-content.rates-dashboard .page-header.admin-workspace-header{margin-bottom:14px;padding-bottom:16px}
+.staff-shell .rates-dashboard .rates-workspace{margin-top:0}
+.activation-confirm-modal{max-width:520px}
+.activation-confirm-modal>p{font-size:13px;line-height:1.6;color:#536b82}
+.activation-confirm-details{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.activation-confirm-details>div{padding:12px;border:1px solid #e0e8f0;border-radius:8px}
+.activation-confirm-details dt{font-size:10px;color:#657c91;font-weight:700}
+.activation-confirm-details dd{font-size:13px;font-weight:700;margin:5px 0 0;overflow-wrap:anywhere}
+.staff-shell .page-content .page-header.admin-workspace-header {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:16px 28px;
+  min-height:100px;
+  padding:8px 0 22px;
+  margin:0 0 24px;
+  border-bottom:1px solid var(--staff-border,var(--line));
+}
+.admin-workspace-header .page-header-title{min-width:0}
+.staff-shell .admin-workspace-header .page-header-title h1{font-size:clamp(24px,2.1vw,30px);line-height:1.25;margin:0;overflow-wrap:anywhere}
+.admin-workspace-header .page-header-desc{max-width:680px;font-size:13px;line-height:1.6;margin:7px 0 0;color:var(--staff-muted,var(--muted))}
+.admin-workspace-header .page-header-right{margin:0;justify-self:end;flex-wrap:nowrap}
+.admin-workspace-header .staff-header-meta{display:grid;grid-template-columns:max-content 240px;align-items:center;gap:14px}
+.admin-workspace-header .unified-datetime{gap:5px;padding:0;min-height:52px;justify-content:center}
+.admin-workspace-header .unified-datetime .datetime-time{font-size:17px;font-weight:700;color:var(--staff-ink,var(--ink))}
+.admin-workspace-header .unified-datetime .datetime-date{font-size:12px;color:var(--staff-muted,var(--muted))}
+.admin-workspace-header .datetime-tz{font-size:11px;color:var(--staff-muted,var(--muted))}
+.admin-workspace-header .staff-header-profile-column{min-width:0;width:240px}
+.admin-workspace-header .admin-profile-btn{min-height:56px;padding:8px 10px;gap:10px;border-radius:10px}
+.admin-workspace-header .admin-profile-avatar{width:36px;height:36px;font-size:13px}
+.admin-workspace-header .admin-profile-name{font-size:13px;max-width:160px}
+.admin-workspace-header .admin-profile-email{font-size:11px;max-width:160px;margin-top:3px}
+.admin-workspace-header .admin-header-actions{grid-column:1/-1;justify-content:flex-end;margin:0;gap:10px}
+.admin-workspace-header .admin-header-actions .header-export-actions{width:auto;flex-wrap:wrap;gap:10px}
+@media(max-width:1150px){
+  .staff-shell .page-content .page-header.admin-workspace-header{grid-template-columns:1fr;gap:18px;align-items:start}
+  .admin-workspace-header .page-header-right{justify-self:start;width:100%}
+  .admin-workspace-header .staff-header-meta{grid-template-columns:max-content 240px}
+}
+@media(max-width:480px){
+  .admin-workspace-header .staff-header-meta{grid-template-columns:minmax(0,1fr);gap:14px;width:100%}
+  .admin-workspace-header .staff-header-profile-column{width:100%}
+  .admin-workspace-header .admin-header-actions{justify-content:flex-start}
+}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Download, Droplets, Printer, ZoomIn, ZoomOut } from 'lucide-react'
+import { ArrowLeft, Download, Printer, ZoomIn, ZoomOut } from 'lucide-react'
 import { getPrintableBill } from '../lib/api.js'
 import { downloadBillPdf } from '../lib/billPdf.js'
 import { billStatus, dateLabel, monthLabel, peso, vatBreakdown } from '../lib/format.js'
@@ -58,7 +58,7 @@ export default function PrintableBill({ area }) {
     setExporting(true)
     setError('')
     try {
-      downloadBillPdf(bill, { paperSize, copies })
+      downloadBillPdf(bill, { paperSize, copies, printColorMode: prefs?.printColorMode })
     } catch (err) {
       setError(err.message || 'Could not export this bill. Please try again.')
     } finally {
@@ -67,7 +67,7 @@ export default function PrintableBill({ area }) {
   }
 
   return (
-    <div className={`page-content print-page bill-size-${paperSize}`}>
+    <div className={`page-content print-page bill-size-${paperSize} ${prefs?.printColorMode === 'grayscale' ? 'print-grayscale' : ''}`}>
       <style>{`
         @page {
           size: ${copyList.length === 2 ? (isHalf ? 'letter landscape' : 'letter portrait') : (isHalf ? '5.5in 8.5in portrait' : 'letter portrait')};
@@ -135,7 +135,7 @@ export default function PrintableBill({ area }) {
               <p className="bill-copy-label">{copy}</p>
           <header className="print-header">
             <div className="print-brand">
-              <span><Droplets size={27} /></span>
+              <span className="print-logo-mark"><img src="/isabel-water-logo.png" alt="Isabel Water logo" /></span>
               <div>
                 <strong>ISABEL WATERS</strong>
                 <small>Billing & Collection</small>
@@ -150,6 +150,7 @@ export default function PrintableBill({ area }) {
             <div>
               <p className="eyebrow">STATEMENT PERIOD</p>
               <h1>{monthLabel(bill.billing_month)}</h1>
+              {bill.period_start && bill.period_end && <p style={{fontSize:11,margin:'4px 0 0'}}>{dateLabel(bill.period_start)} – {dateLabel(bill.period_end)}</p>}
             </div>
             <StatusBadge bill={bill} />
           </div>

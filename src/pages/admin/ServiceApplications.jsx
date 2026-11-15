@@ -1,3 +1,4 @@
+import { TableEmptyRows } from '../../components/TablePagination.jsx'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -78,7 +79,7 @@ export default function ServiceApplications({ embedded = false }) {
 
   return (
     <div className={embedded ? 'embedded-requests service-app-management' : 'page-content service-app-management'}>
-      <PageHeader title="Service Applications" description="Review connection requests and track their progress through installation." />
+      <PageHeader title="Service Applications" />
 
       {showIntake && (
         <WalkInApplicationModal
@@ -396,7 +397,7 @@ function ApplicationPipelineWorkspace({ role, onModified, showIntake, onToggleIn
                     </tr>
                   )
                 })}
-              </tbody>
+              <TableEmptyRows count={Math.max(0, 25 - filtered.length)} colSpan={7} /></tbody>
             </table>
           </div>
           <div className="table-pagination">
@@ -461,6 +462,18 @@ function ApplicationPipelineWorkspace({ role, onModified, showIntake, onToggleIn
 }
 
 function ApplicationDetail({ row, role, saved }) {
+  const [selectedStage, setSelectedStage] = useState(row.status)
+  useEffect(() => { setSelectedStage(row.status) }, [row.id, row.status])
+  const activating = row.status === 'installation' && ['installation', 'activated'].includes(selectedStage)
+  const [pendingActivation, setPendingActivation] = useState(null)
+  const [linkedCustomerId, setLinkedCustomerId] = useState(null)
+  useEffect(() => {
+    let live = true
+    setLinkedCustomerId(null)
+    setPendingActivation(null)
+    if (row.linked_account_id) supabase.from('contract_accounts').select('legacy_customer_id').eq('id', row.linked_account_id).maybeSingle().then(({data}) => { if (live) setLinkedCustomerId(data?.legacy_customer_id || null) })
+    return () => { live = false }
+  }, [row.id, row.linked_account_id])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -470,10 +483,12 @@ function ApplicationDetail({ row, role, saved }) {
     .trim()
   const activeStepIndex = pipelineSteps.findIndex((s) => s.match.includes(row.status))
 
-  async function update(event) {
-    event.preventDefault()
-    const fields = new FormData(event.currentTarget)
-    const newStatus = fields.get('status') || row.status
+  async function update(event, confirmedFields = null) {
+    event?.preventDefault()
+    if (busy) return
+    const fields = confirmedFields || new FormData(event.currentTarget)
+    const requestedStatus = fields.get('status') || row.status
+    const newStatus = activating ? 'activated' : requestedStatus
     const customerMsg = fields.get('message')?.trim() || null
 
     setBusy(true)
@@ -486,11 +501,18 @@ function ApplicationDetail({ row, role, saved }) {
         const meterVal = String(fields.get('meter') || '').trim()
         const readingVal = Number(fields.get('reading') || 0)
 
-        if (!canVal || canVal.length !== 9) {
+        if (!/^\d{9}$/.test(canVal)) {
           throw new Error('Please enter a valid 9-digit Contract Account Number (CAN).')
         }
         if (!meterVal) {
           throw new Error('Please enter the installed meter serial number.')
+        }
+        if (!Number.isFinite(readingVal) || readingVal < 0) {
+          throw new Error('Initial reading must be a number of zero or greater.')
+        }
+        if (!confirmedFields) {
+          setPendingActivation(fields)
+          return
         }
 
         const { error: rpcErr } = await supabase.rpc('activate_application', {
@@ -501,6 +523,7 @@ function ApplicationDetail({ row, role, saved }) {
           p_message: customerMsg,
         })
         if (rpcErr) throw rpcErr
+        setPendingActivation(null)
         setSuccess(`Service connection activated! Issued CAN: ${canVal}`)
         saved()
         return
@@ -602,8 +625,8 @@ function ApplicationDetail({ row, role, saved }) {
           <div style={{ flex: 1 }}>
             <strong>Active Water Service Connection</strong>
           </div>
-          {row.linked_account_id && (
-            <Link to={`${customerPortalPath}/customers/${row.linked_account_id}`} className="button button-small">
+          {linkedCustomerId && (
+            <Link to={`${customerPortalPath}/customers/${linkedCustomerId}`} className="button button-small">
               View Customer Account <ExternalLink size={13} />
             </Link>
           )}
@@ -629,7 +652,8 @@ function ApplicationDetail({ row, role, saved }) {
                 name="status"
                 className="compact-select"
                 disabled={row.status === 'activated'}
-                defaultValue={row.status}
+                value={selectedStage}
+                onChange={(event) => setSelectedStage(event.target.value)}
               >
                 {applicationStates
                   .filter((s) => s !== 'activated' || ['installation', 'activated'].includes(row.status))
@@ -644,7 +668,7 @@ function ApplicationDetail({ row, role, saved }) {
           </div>
 
           {/* Meter Installation & Account Activation Console */}
-          {row.status === 'installation' && (
+          {activating && (
             <div className="compact-meter-strip">
               <label>
                 <span>CAN (9 Digits)</span>
@@ -693,13 +717,24 @@ function ApplicationDetail({ row, role, saved }) {
               />
             </div>
             <button className="button button-small" disabled={busy} type="submit">
-              {busy ? 'Saving…' : row.status === 'installation' ? 'Activate Connection' : 'Save Status'}
+              {busy ? 'Saving…' : activating ? 'Activate Connection' : 'Save Status'}
             </button>
           </div>
         </div>
       </form>
 
       {/* 5. Subpanels: Connection Offer & Requested Documents */}
+      {pendingActivation && <Modal title="Activate this connection?" className="activation-confirm-modal" onClose={() => { if (!busy) setPendingActivation(null) }}>
+        <p>Confirm the installed meter and account details for <strong>{row.applicant_name}</strong>.</p>
+        <dl className="activation-confirm-details">
+          <div><dt>CAN</dt><dd>{pendingActivation.get('can')}</dd></div>
+          <div><dt>Meter serial</dt><dd>{pendingActivation.get('meter')}</dd></div>
+          <div><dt>Initial reading</dt><dd>{Number(pendingActivation.get('reading') || 0).toFixed(2)} m³</dd></div>
+          <div><dt>Service address</dt><dd>{row.service_address}</dd></div>
+        </dl>
+        <Notice type="error">{error}</Notice>
+        <div className="form-actions"><button type="button" className="button button-ghost" disabled={busy} onClick={() => setPendingActivation(null)}>Cancel</button><button type="button" className="button" disabled={busy} onClick={() => update(null, pendingActivation)}>{busy ? 'Activating…' : 'Confirm activation'}</button></div>
+      </Modal>}
       <div className="compact-subpanels">
         <ConnectionOffer
           applicationId={row.id}

@@ -3,7 +3,7 @@ import { Calculator, Droplets, History, Save } from 'lucide-react'
 import { supabase } from '../../lib/supabaseClient.js'
 import { dateLabel, errorMessage, peso, todayISO, vatBreakdown } from '../../lib/format.js'
 import { EmptyState, Loading, Notice, PageHeader } from '../../components/UI.jsx'
-import TablePagination, { useTablePagination } from '../../components/TablePagination.jsx'
+import TablePagination, { TableEmptyRows, useTablePagination } from '../../components/TablePagination.jsx'
 import './rates-charges.css'
 
 let cachedRates = null
@@ -76,7 +76,7 @@ export default function RatesCharges() {
 
   return (
     <div className="page-content rates-page rates-dashboard">
-      <PageHeader title="Rates & Charges" description="Manage the residential water rate and preview its effect on a bill." />
+      <PageHeader title="Rates & Charges"  />
       <Notice type="error">{error}</Notice>
       {rates === null && !error ? (
         <Loading />
@@ -233,7 +233,7 @@ export default function RatesCharges() {
                         <td>{dateLabel(log.created_at)}</td>
                       </tr>
                     ))}
-                  </tbody>
+                  <TableEmptyRows count={historyPage.emptyRowsCount} colSpan={5} /></tbody>
                 </table>
               </div>
             ) : (

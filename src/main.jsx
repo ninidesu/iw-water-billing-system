@@ -6,6 +6,7 @@ import { ErrorBoundary } from './components/UI.jsx'
 import App from './App.jsx'
 import './styles.css'
 import './service.css'
+import './components/admin/floating-detail-panels.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

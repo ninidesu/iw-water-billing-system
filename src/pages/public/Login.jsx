@@ -14,7 +14,6 @@ export default function Login() {
   useEffect(() => { setGuestFlow(true); return () => setGuestFlow(false) }, [setGuestFlow])
   const [passwordStep,setPasswordStep] = useState(false)
   const [more,setMore] = useState(false)
-  const [help,setHelp] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -59,12 +58,12 @@ export default function Login() {
   return <AuthScreen>
     <Notice type="error">{error}</Notice><Notice type="success">{message}</Notice>
     <form onSubmit={submit} className="form-stack">
-      <label>Email address<input type="email" autoComplete="email" required readOnly={passwordStep}
+      <label>Email address<input type="email" autoComplete="email" required
         value={email} onChange={event=>setEmail(event.target.value)}/></label>
       {passwordStep && <>
-        <button type="button" className="iw-auth-link" onClick={()=>{setPasswordStep(false);setPassword('');setError('')}}>Change email</button>
         <label>Password<input autoFocus type="password" autoComplete="current-password" required
           value={password} onChange={event=>setPassword(event.target.value)}/></label>
+        <button type="button" className="iw-auth-link" disabled={resetBusy} onClick={()=>sendEmail(true)}>{resetBusy?'Sending reset link…':'Forgot password?'}</button>
       </>}
       <div className="iw-auth-submit"><button className="button" disabled={busy}>{busy?'Signing in…':passwordStep?'Sign in':'Continue'}</button></div>
     </form>
@@ -72,7 +71,5 @@ export default function Login() {
     <div className="iw-auth-more"><button type="button" className="iw-auth-link" aria-expanded={more} onClick={()=>setMore(!more)}>More sign-in options</button>
       {more && <button type="button" className="iw-provider-extra" disabled={resetBusy} onClick={()=>sendEmail(false)}>Email me a sign-in link</button>}
     </div>
-    <button type="button" className="iw-auth-link" aria-expanded={help} onClick={()=>setHelp(!help)}>Get help signing in</button>
-    {help && <div className="iw-help-box"><p>Enter your registered email address above to reset your password.</p><button type="button" className="iw-auth-link" disabled={resetBusy} onClick={()=>sendEmail(true)}>Send password reset link</button></div>}
   </AuthScreen>
 }

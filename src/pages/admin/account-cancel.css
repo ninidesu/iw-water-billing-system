@@ -1,0 +1,32 @@
+.staff-shell .customer-account-page .account-quick-actions button.account-cancel-button {
+  background: #991b1b !important;
+  border-color: #991b1b !important;
+  color: #fff !important;
+}
+.staff-shell .customer-account-page .account-quick-actions button.account-cancel-button:hover:not(:disabled) {
+  background: #701818 !important;
+  border-color: #701818 !important;
+  color: #fff !important;
+}
+.staff-shell .customer-account-page .account-quick-actions button.account-cancel-button svg {
+  color: #fff !important;
+  background: transparent !important;
+}
+
+.staff-shell .customer-account-page .selected-bill-panel { padding:18px; }
+.staff-shell .customer-account-page .selected-bill-heading { padding-bottom:12px;gap:12px; }
+.staff-shell .customer-account-page .selected-bill-heading h2 { font-size:20px;margin:4px 0 2px; }
+.staff-shell .customer-account-page .selected-bill-heading p { margin:0;font-size:11px; }
+.staff-shell .customer-account-page .bill-info-list { padding:4px 0;margin:0; }
+.staff-shell .customer-account-page .bill-info-list>div { padding:8px 0; }
+.staff-shell .customer-account-page .bill-info-list dt { font-size:9px; }
+.staff-shell .customer-account-page .bill-info-list dd { font-size:12px;margin-top:3px; }
+.staff-shell .customer-account-page .bill-item-list { margin:12px 0; }
+.staff-shell .customer-account-page .bill-item-list h3 { font-size:13px;margin:0 0 5px; }
+.staff-shell .customer-account-page .bill-item-list>div { padding:7px 0;font-size:11px;line-height:1.4; }
+.staff-shell .customer-account-page .bill-item-list small { margin-top:2px;font-size:9px; }
+.staff-shell .customer-account-page .selected-bill-total { padding:11px 12px;margin-bottom:12px;font-size:12px; }
+.staff-shell .customer-account-page .selected-bill-total strong { font-size:20px; }
+.staff-shell .customer-account-page .selected-bill-actions { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px; }
+.staff-shell .customer-account-page .selected-bill-actions .button { min-height:40px;margin:0;padding:8px 10px;font-size:11px;gap:6px; }
+@media(max-width:420px){.staff-shell .customer-account-page .selected-bill-actions{grid-template-columns:1fr}}

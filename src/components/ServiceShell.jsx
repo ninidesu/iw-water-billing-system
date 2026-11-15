@@ -1,21 +1,11 @@
-import { Droplet } from 'lucide-react'
-import { Link, NavLink } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext.jsx'
+import '../customer-theme.css'
+import { CustomerSiteHeader, CustomerSiteFooter } from './CustomerBrandFrame.jsx'
 
 export function ServiceShell({ children, footer }) {
-  const { user, role } = useAuth()
-  const portal = role === 'admin' ? '/admin' : role === 'cashier' ? '/cashier' : '/customer/dashboard'
-  return <div className="service-site">
-    <header className="service-header"><div className="service-bar">
-      <Link className="service-brand" to="/"><Droplet size={24} /> Isabel Waters</Link>
-      <nav aria-label="Customer services">
-        <NavLink to="/apply">New service</NavLink><NavLink to="/concerns">Concerns</NavLink>
-        <NavLink to="/track">Track request</NavLink>
-        <Link className="service-login" to={user ? portal : '/login'}>{user ? 'My portal' : 'Log in'}</Link>
-      </nav>
-    </div></header>
+  return <div className="service-site customer-brand-pages">
+    <CustomerSiteHeader/>
     <main className="service-main">{children}</main>
-    {footer}
+    {footer || <CustomerSiteFooter/>}
   </div>
 }
 
