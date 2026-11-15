@@ -14,8 +14,26 @@
 .staff-shell .overview-reference.page-content { max-width: none; }
 .staff-shell .overview-reference .page-header { width: 100%; border-color: var(--ov-line); }
 .staff-shell .overview-reference .page-header h1 { color: var(--ov-ink); }
-.overview-reference .staff-header-meta,
-.overview-reference .header-export-actions { flex-wrap: wrap; }
+.staff-shell .page-content.overview-reference .page-header.admin-workspace-header {
+  min-height: 0;
+  padding-block: 4px 12px;
+  margin-bottom: 0;
+  row-gap: 10px;
+}
+.overview-reference .overview-transactions-header,
+.overview-reference .overview-transaction-actions,
+.overview-reference .overview-export-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.overview-reference .overview-export-actions .button {
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
 .overview-reference .nev-hero-grid,
 .overview-reference .nev-kpi-grid,
 .overview-reference .nev-bottom-grid { width: 100%; gap: clamp(12px, 2cqi, 24px); }
@@ -95,7 +113,6 @@
 .overview-reference .nev-legend-item:hover, .overview-reference .nev-legend-item.active { background: var(--ov-bg); }
 .overview-reference .nev-center-label, .overview-reference .nev-legend-item { color: var(--ov-muted) !important; }
 .overview-reference .nev-center-value, .overview-reference .nev-period-val { color: var(--ov-ink) !important; }
-.overview-reference .header-export-actions .button { background: var(--ov-surface); color: var(--ov-ink); border: 1px solid var(--ov-line); }
 @container overview (max-width: 56rem) {
   .overview-reference .nev-hero-grid,
   .overview-reference .nev-bottom-grid { grid-template-columns: minmax(0, 1fr); }

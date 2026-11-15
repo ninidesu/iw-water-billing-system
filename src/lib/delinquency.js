@@ -3,6 +3,7 @@ export function getOverdueStage(days, billCount = 1) {
     return {
       level: 3,
       key: '3mo',
+      collectionStatus: 'inactive',
       label: '3+ Months Late',
       shortLabel: '3+ Mos · For Restriction',
       badgeLabel: 'Notice of Restriction',
@@ -21,6 +22,7 @@ export function getOverdueStage(days, billCount = 1) {
     return {
       level: 2,
       key: '2mo',
+      collectionStatus: 'notice',
       label: '2 Months Late',
       shortLabel: '2 Mos · Warning',
       badgeLabel: 'Second Warning',
@@ -38,6 +40,7 @@ export function getOverdueStage(days, billCount = 1) {
   return {
     level: 1,
     key: '1mo',
+    collectionStatus: 'warning',
     label: '1 Month Late',
     shortLabel: '1 Mo · Reminder',
     badgeLabel: 'Payment Reminder',

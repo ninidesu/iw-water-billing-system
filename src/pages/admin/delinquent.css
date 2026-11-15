@@ -1318,6 +1318,26 @@ html:has(.overdue-account-drawer[open]) {
   font-weight: 700;
 }
 
+.staff-shell .overdue-ledger .status-warning {
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.staff-shell .overdue-ledger .status-notice {
+  background: #e6f0f9;
+  border: 1px solid #bfd8ee;
+  color: #1b5e91;
+}
+
+.staff-shell[data-staff-theme='dark'] .overdue-ledger .status-warning {
+  --status-fill: #8a5106;
+}
+
+.staff-shell[data-staff-theme='dark'] .overdue-ledger .status-notice {
+  --status-fill: #275586;
+}
+
 .staff-shell[data-staff-theme='dark'] .overdue-ledger .delinquent-stage-tag {
   background: #275586;
   color: #fff;

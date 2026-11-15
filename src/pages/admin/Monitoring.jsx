@@ -207,29 +207,7 @@ export default function Monitoring({ area = 'admin' } = {}) {
 
   return (
     <div className="page-content admin-monitor nev-dashboard overview-reference">
-      <PageHeader
-        title="Overview"
-        action={
-          <div className="header-export-actions">
-            <button
-              type="button"
-              className="button button-ghost button-sm"
-              onClick={() => exportDailyCollectionCsv(view?.todayPaymentRows || [], { today, profile })}
-              title="Export Today's Collection to CSV"
-            >
-              <Download size={12} /> Export CSV
-            </button>
-            <button
-              type="button"
-              className="button button-ghost button-sm"
-              onClick={() => exportDailyCollectionPdf(view?.todayPaymentRows || [], { today, profile })}
-              title="Export Today's Collection to PDF Report"
-            >
-              <FileText size={12} /> Export PDF
-            </button>
-          </div>
-        }
-      />
+      <PageHeader title="Overview" />
 
       <Notice type="error">{error}</Notice>
       {error && (
@@ -388,15 +366,36 @@ export default function Monitoring({ area = 'admin' } = {}) {
               {/* Left: Latest Transactions */}
               <section className="panel nev-table-card">
                 <div>
-                  <div className="nev-card-head">
+                  <div className="nev-card-head overview-transactions-header">
                     <h3 className="nev-card-title">Latest transactions</h3>
-                    <Link
-                      to={isCashier ? '/cashier/collection' : '/admin/collections'}
-                      className="nev-circle-btn"
-                      title="View all collections"
-                    >
-                      <ArrowRight size={15} />
-                    </Link>
+                    <div className="overview-transaction-actions">
+                      <div className="overview-export-actions" role="group" aria-label="Export today's collections">
+                        <button
+                          type="button"
+                          className="button button-ghost button-sm"
+                          onClick={() => exportDailyCollectionCsv(view.todayPaymentRows, { today, profile })}
+                          title="Export today's collections to CSV"
+                        >
+                          <Download size={14} aria-hidden="true" /> Export CSV
+                        </button>
+                        <button
+                          type="button"
+                          className="button button-ghost button-sm"
+                          onClick={() => exportDailyCollectionPdf(view.todayPaymentRows, { today, profile })}
+                          title="Export today's collections to PDF"
+                        >
+                          <FileText size={14} aria-hidden="true" /> Export PDF
+                        </button>
+                      </div>
+                      <Link
+                        to={isCashier ? '/cashier/collection' : '/admin/collections'}
+                        className="nev-circle-btn"
+                        aria-label="View all collections"
+                        title="View all collections"
+                      >
+                        <ArrowRight size={15} aria-hidden="true" />
+                      </Link>
+                    </div>
                   </div>
 
                   {view.recentTransactions.length ? (

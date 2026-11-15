@@ -110,18 +110,110 @@
     grid-template-columns: 1fr 1fr;
     align-items: center;
     gap: 48px;
-    background: linear-gradient(145deg, #f0f9fb 0%, #e2f4f7 40%, #ffffff 80%);
+    background: linear-gradient(180deg, var(--white) 0%, var(--slate) 45%, #d8eaff 100%);
     position: relative;
     overflow: hidden;
+    isolation: isolate;
   }
-  .hero::before {
-    content: '';
+  .hero > :is(.hero-left, .soa-card) {
+    position: relative;
+    z-index: 2;
+  }
+  .hero > :is(.blob, .rays, .dots, .rings, .waves) {
     position: absolute;
-    top: -120px; right: -120px;
-    width: 500px; height: 500px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(14,154,167,.1) 0%, transparent 70%);
     pointer-events: none;
+  }
+  .hero > .blob {
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: landing-hero-drift 18s ease-in-out infinite alternate;
+  }
+  .hero > .b1 {
+    width: 520px;
+    height: 520px;
+    top: -170px;
+    right: -90px;
+    background: #8cc8ff;
+    opacity: .55;
+  }
+  .hero > .b2 {
+    width: 460px;
+    height: 460px;
+    bottom: -140px;
+    left: -110px;
+    background: #9ff0ff;
+    opacity: .45;
+    animation-delay: -6s;
+  }
+  .hero > .b3 {
+    width: 300px;
+    height: 300px;
+    top: 32%;
+    left: 42%;
+    background: #c9c2ff;
+    opacity: .35;
+    animation-delay: -11s;
+  }
+  @keyframes landing-hero-drift {
+    to { transform: translate(50px, -40px) scale(1.12); }
+  }
+  .hero > .rays {
+    inset: 0;
+    background: conic-gradient(from 200deg at 80% -10%,
+      transparent 0deg, color-mix(in srgb, var(--teal) 10%, transparent) 8deg,
+      transparent 18deg, color-mix(in srgb, var(--teal) 7%, transparent) 28deg,
+      transparent 40deg, color-mix(in srgb, var(--teal) 9%, transparent) 52deg,
+      transparent 66deg);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 75%);
+    mask-image: linear-gradient(180deg, #000 0%, transparent 75%);
+  }
+  .hero > .dots {
+    inset: 0;
+    background-image: radial-gradient(color-mix(in srgb, var(--teal) 20%, transparent) 1px, transparent 1.3px);
+    background-size: 28px 28px;
+    -webkit-mask-image: radial-gradient(70% 70% at 25% 55%, #000, transparent);
+    mask-image: radial-gradient(70% 70% at 25% 55%, #000, transparent);
+  }
+  .hero > .rings {
+    left: -8%;
+    top: 28%;
+    width: min(760px, 100vw);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: repeating-radial-gradient(circle, transparent 0 58px,
+      color-mix(in srgb, var(--teal) 9%, transparent) 59px 60px);
+    -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 68%);
+    mask-image: radial-gradient(circle, #000 0%, transparent 68%);
+  }
+  .hero > .waves {
+    inset: auto 0 -2px;
+    height: 240px;
+  }
+  .hero > .waves svg {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 200%;
+    height: 100%;
+    animation: landing-hero-wave-slide 22s linear infinite;
+  }
+  .hero > .waves svg:nth-child(2) {
+    animation-duration: 32s;
+    animation-direction: reverse;
+  }
+  .hero > .waves svg:nth-child(3) { animation-duration: 46s; }
+  @keyframes landing-hero-wave-slide {
+    to { transform: translateX(-50%); }
+  }
+  @media (max-width: 860px) {
+    .hero > .b1 { width: 320px; height: 320px; }
+    .hero > .b2 { width: 280px; height: 280px; }
+    .hero > .b3 { display: none; }
+    .hero > .rings { width: min(480px, 100vw); }
+    .hero > .waves { height: 160px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero > .blob, .hero > .waves svg { animation: none; }
   }
   .hero-label {
     display: inline-flex;
@@ -691,8 +783,6 @@
   --border:#D9E8F7; --red:#C9443E; --red-bg:#FFF3F1;
 }
 body { font-family:'Plus Jakarta Sans',sans-serif; }
-.hero { background:linear-gradient(125deg,#E6F4FF 0%,#F2F9FF 52%,#FFFFFF 100%); }
-.hero::before { background:radial-gradient(circle,rgba(39,183,243,.16) 0%,transparent 70%); }
 .hero h1,.section-title,.soa-title,.soa-total-amount,.stat-num,.cta-section h2,.step-num {font-family:'Libre Baskerville',serif;}
 .hero h1 {letter-spacing:-.035em;line-height:1.22;}
 .hero h1 em {color:#1264CE;}
@@ -729,22 +819,19 @@ body { font-family:'Plus Jakarta Sans',sans-serif; }
   </div>
 </nav>
 
-<!-- TICKER -->
-<div class="ticker" aria-label="Service advisories">
-  <div class="ticker-inner">
-    <span class="ticker-item"><span class="ticker-dot"></span>No active service interruptions as of Nov 15, 2026</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Scheduled maintenance: Barangay Sta. Cruz — Nov 18, 6–10 AM</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>New e-wallet channels now available for bill payment</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Report a burst pipe 24/7 — no login required</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>No active service interruptions as of Nov 15, 2026</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Scheduled maintenance: Barangay Sta. Cruz — Nov 18, 6–10 AM</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>New e-wallet channels now available for bill payment</span>
-    <span class="ticker-item"><span class="ticker-dot"></span>Report a burst pipe 24/7 — no login required</span>
-  </div>
-</div>
-
 <!-- HERO -->
 <section class="hero">
+  <div class="blob b1" aria-hidden="true"></div>
+  <div class="blob b2" aria-hidden="true"></div>
+  <div class="blob b3" aria-hidden="true"></div>
+  <div class="rays" aria-hidden="true"></div>
+  <div class="dots" aria-hidden="true"></div>
+  <div class="rings" aria-hidden="true"></div>
+  <div class="waves" aria-hidden="true">
+    <svg viewBox="0 0 2880 240" preserveAspectRatio="none"><path fill="#5aaeff" fill-opacity=".18" d="M0 120c240-60 480-60 720 0s480 60 720 0 480-60 720 0 480 60 720 0v120H0z"/></svg>
+    <svg viewBox="0 0 2880 240" preserveAspectRatio="none"><path fill="#1565d8" fill-opacity=".14" d="M0 150c240 50 480 50 720 0s480-50 720 0 480 50 720 0 480-50 720 0v90H0z"/></svg>
+    <svg viewBox="0 0 2880 240" preserveAspectRatio="none"><path fill="#0a2a6b" fill-opacity=".10" d="M0 185c240-40 480-40 720 0s480 40 720 0 480-40 720 0 480 40 720 0v55H0z"/></svg>
+  </div>
   <div class="hero-left">
     <h1>Manage your water service.<br><em>All in one place.</em></h1>
     <p>Pay your bill, apply for a connection, or report a concern — all in one place. No runaround, no long queues.</p>
@@ -788,6 +875,20 @@ body { font-family:'Plus Jakarta Sans',sans-serif; }
     </div>
   </div>
 </section>
+
+<!-- TICKER -->
+<div class="ticker" aria-label="Service advisories">
+  <div class="ticker-inner">
+    <span class="ticker-item"><span class="ticker-dot"></span>No active service interruptions as of Nov 15, 2026</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Scheduled maintenance: Barangay Sta. Cruz — Nov 18, 6–10 AM</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>New e-wallet channels now available for bill payment</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Report a burst pipe 24/7 — no login required</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>No active service interruptions as of Nov 15, 2026</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Scheduled maintenance: Barangay Sta. Cruz — Nov 18, 6–10 AM</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>New e-wallet channels now available for bill payment</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Report a burst pipe 24/7 — no login required</span>
+  </div>
+</div>
 
 <!-- STATS BAR -->
 <div class="stats-bar">
@@ -866,34 +967,51 @@ body { font-family:'Plus Jakarta Sans',sans-serif; }
 
 <!-- WAYS TO PAY -->
 <section class="pay-section">
+  <div class="pay-water" aria-hidden="true">
+    <div class="pay-water-ripple"></div>
+    <div class="pay-water-ripple"></div>
+    <div class="pay-water-bubbles"><span></span><span></span><span></span></div>
+    <div class="pay-water-bubbles"><span></span><span></span><span></span></div>
+  </div>
   <div class="section-eyebrow">Payments</div>
   <div class="section-title">Ways to pay your bill</div>
   <div class="section-sub">Find your Contract Account Number (CAN) on your water bill. You'll need it at any payment channel.</div>
   <div class="pay-grid">
     <div class="pay-card">
-      <div class="pay-card-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#0E9AA7" stroke-width="1.8"/><path d="M3 9h18" stroke="#0E9AA7" stroke-width="1.8"/><path d="M7 14h4" stroke="#0E9AA7" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div class="pay-card-icon" aria-hidden="true">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l2-5h14l2 5v2a2 2 0 0 1-4 0 2.5 2.5 0 0 1-5 0 2.5 2.5 0 0 1-5 0 2 2 0 0 1-4 0V9h18M5 13v7h14v-7M10 20v-4h4v4"/>
+        </svg>
       </div>
       <h4>Office counter</h4>
       <p>Present your CAN or invoice at the Isabel Waters service desk. Walk-ins welcome.</p>
     </div>
     <div class="pay-card">
-      <div class="pay-card-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2" stroke="#0E9AA7" stroke-width="1.8"/><path d="M7 10h4M7 14h2" stroke="#0E9AA7" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div class="pay-card-icon" aria-hidden="true">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-6 9 6H3zM6 12v6m6-6v6m6-6v6M3 21h18"/>
+        </svg>
       </div>
       <h4>Partner banks</h4>
       <p>Pay over the counter at accredited bank branches. Ask about accepted channels before visiting.</p>
     </div>
     <div class="pay-card">
-      <div class="pay-card-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" stroke="#0E9AA7" stroke-width="1.8"/><path d="M9 18h6" stroke="#0E9AA7" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="7" r="2" stroke="#0E9AA7" stroke-width="1.8"/></svg>
+      <div class="pay-card-icon" aria-hidden="true">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <rect x="5" y="2" width="14" height="20" rx="2"/>
+          <path d="M9 18h6"/>
+          <circle cx="12" cy="9" r="2"/>
+        </svg>
       </div>
       <h4>E-wallets</h4>
       <p>GCash, Maya, and more. Confirm biller details with the office before your first e-wallet payment.</p>
     </div>
     <div class="pay-card">
-      <div class="pay-card-icon">
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="#0E9AA7" stroke-width="1.8"/><path d="M9 12l2 2 4-4" stroke="#0E9AA7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="pay-card-icon" aria-hidden="true">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="13" rx="2"/>
+          <path d="M9 10l2 2 4-4m-3 9v3m-4 0h8"/>
+        </svg>
       </div>
       <h4>Online account</h4>
       <p>Log in to view your balance and settle payments directly — available 24/7 from any device.</p>
@@ -904,28 +1022,50 @@ body { font-family:'Plus Jakarta Sans',sans-serif; }
 
 <!-- STEPS: NEW CONNECTION -->
 <section class="steps-section">
+  <svg class="steps-water" viewBox="0 0 1600 240" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path class="steps-wave-fill" d="M0 104C72 72 147 66 234 90S457 170 605 175 840 121 976 94 1181 62 1294 88 1492 132 1600 102V240H0Z"/>
+    <g class="steps-wave-lines">
+      <path d="M0 118C72 86 147 80 234 104S457 184 605 189 840 135 976 108 1181 76 1294 102 1492 146 1600 116"/>
+      <path d="M0 118C72 86 147 80 234 104S457 184 605 189 840 135 976 108 1181 76 1294 102 1492 146 1600 116" transform="translate(0 10)"/>
+      <path d="M0 118C72 86 147 80 234 104S457 184 605 189 840 135 976 108 1181 76 1294 102 1492 146 1600 116" transform="translate(0 20)"/>
+      <path d="M0 118C72 86 147 80 234 104S457 184 605 189 840 135 976 108 1181 76 1294 102 1492 146 1600 116" transform="translate(0 30)"/>
+      <path d="M0 118C72 86 147 80 234 104S457 184 605 189 840 135 976 108 1181 76 1294 102 1492 146 1600 116" transform="translate(0 40)"/>
+    </g>
+  </svg>
   <div class="section-eyebrow">New connections</div>
-  <div class="section-title">Getting a new connection</div>
-  <div class="section-sub">Three steps from application to running water. The whole process typically takes 5–10 business days.</div>
-  <div class="steps-grid">
-    <div class="step">
-      <div class="step-num">1</div>
-      <h4>Apply online</h4>
-      <p>Fill in your property and contact details. You'll receive a reference and tracking code right away.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <h4>Site inspection</h4>
-      <p>Our team checks the meter location and pipe route, then prepares a cost estimate for your review.</p>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <h4>Pay and connect</h4>
-      <p>Accept the service agreement and settle the approved charges. Your CAN is issued after installation.</p>
-    </div>
+  <div class="steps-heading">
+    <h2 class="section-title">Getting a new connection</h2>
+    <div class="section-sub">Apply online or visit the office. Our team will guide you through inspection, payment, and connection.</div>
   </div>
-  <div style="margin-top: 40px;">
+  <ol class="steps-grid" role="list">
+    <li class="step">
+      <div class="step-num">1</div>
+      <div class="step-card">
+        <h3>Apply online or walk in</h3>
+        <p>Submit your property and contact details online or at the office.</p>
+        <div class="step-outcome"><span>You get</span><strong>A reference and tracking code</strong></div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">2</div>
+      <div class="step-card">
+        <h3>Site inspection</h3>
+        <p>Our team schedules a visit and checks the meter location and pipe route.</p>
+        <div class="step-outcome"><span>You get</span><strong>Your cost estimate</strong></div>
+      </div>
+    </li>
+    <li class="step">
+      <div class="step-num">3</div>
+      <div class="step-card">
+        <h3>Pay and connect</h3>
+        <p>Accept the service agreement and settle the approved charges through available payment channels or at the office.</p>
+        <div class="step-outcome"><span>You get</span><strong>Your CAN, issued after installation</strong></div>
+      </div>
+    </li>
+  </ol>
+  <div class="steps-actions">
     <a href="#" class="btn-hero-primary">Start your application</a>
+    <a href="#contact" class="steps-office-link">Prefer to visit? Find the office</a>
   </div>
 </section>
 

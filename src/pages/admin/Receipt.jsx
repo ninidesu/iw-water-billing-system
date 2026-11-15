@@ -93,7 +93,7 @@ export default function Receipt() {
                 <img className="receipt-logo" src="/isabel-water-logo.png" alt="Isabel Water logo" />
                 <h1>ISABEL WATERS</h1>
                 <p>Billing & Collection</p>
-                <h2>OFFICIAL RECEIPT</h2>
+                <h2>ACKNOWLEDGEMENT RECEIPT</h2>
                 <p>{copy}</p>
               </header>
       <dl className="thermal-section">

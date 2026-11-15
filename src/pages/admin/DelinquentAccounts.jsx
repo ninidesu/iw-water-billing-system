@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { overduePreview } from '../../lib/overduePreview.js'
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -14,7 +15,7 @@ import {
 } from 'lucide-react'
 import { useAdminData } from '../../hooks/useAdminData.js'
 import { supabase } from '../../lib/supabaseClient.js'
-import { overdueAccounts, getOverdueStage } from '../../lib/delinquency.js'
+import { overdueAccounts } from '../../lib/delinquency.js'
 import { todayISO, peso, dateLabel } from '../../lib/format.js'
 import { PageHeader, Notice, Loading, EmptyState } from '../../components/UI.jsx'
 import StatCard from '../../components/StatCard.jsx'
@@ -63,6 +64,8 @@ export default function DelinquentAccounts() {
   const [printing, setPrinting] = useState(false)
   const detailDialog = useRef(null)
   const today = todayISO()
+  const preview = import.meta.env.DEV && new URLSearchParams(window.location.search).get('preview') === 'overdue'
+  const previewData = useMemo(() => preview ? overduePreview(today) : null, [preview, today])
 
   useEffect(() => {
     let live = true
@@ -113,7 +116,8 @@ export default function DelinquentAccounts() {
     if (printing) window.print()
   }, [printing])
 
-  const accounts = overdueAccounts(data?.customers || [], data?.bills || [], today)
+  const accountData = previewData || data
+  const accounts = overdueAccounts(accountData?.customers || [], accountData?.bills || [], today)
   const latest = (id) => history.find((h) => h.customer_id === id)
 
   const barangays = useMemo(() => {
@@ -130,7 +134,7 @@ export default function DelinquentAccounts() {
       key: r.customer.id,
       primary: r.customer.full_name,
       secondary: `CAN: ${r.customer.can || '—'} · Overdue: ${peso(r.amount)}`,
-      status: r.customer.status,
+      status: r.stage.collectionStatus,
       value: r.customer.full_name,
     }))
   }, [accounts])
@@ -143,7 +147,7 @@ export default function DelinquentAccounts() {
         `${r.customer.full_name} ${r.customer.can || ''} ${r.customer.meter_no} ${r.customer.address || ''}`.toLowerCase().includes(query)
       if (!matches) return false
       if (age && r.bucket !== age) return false
-      if (status && r.customer.status !== status) return false
+      if (status && r.stage.collectionStatus !== status) return false
       if (barangay !== 'all' && (r.customer.barangay || '').trim() !== barangay) return false
       if (follow === 'none' && latest(r.customer.id)) return false
       if (follow === 'due' && !(latest(r.customer.id)?.next_date <= today)) return false
@@ -209,6 +213,10 @@ export default function DelinquentAccounts() {
 
 
   async function save(e) {
+    if (preview) {
+      e.preventDefault()
+      return
+    }
     e.preventDefault()
     const form = e.currentTarget
     const f = new FormData(form)
@@ -246,9 +254,9 @@ export default function DelinquentAccounts() {
     <div className="page-content delinquent-page">
       <div className={printing ? 'delinquent-screen printing' : 'delinquent-screen'}>
         <PageHeader title="Overdue Accounts" />
-        <Notice type="error">{error || historyError}</Notice>
+        <Notice type="error">{!preview && (error || historyError)}</Notice>
 
-        {loading && !data ? (
+        {loading && !accountData ? (
           <Loading />
         ) : (
           <>
@@ -314,11 +322,11 @@ export default function DelinquentAccounts() {
               />
 
               <label className="table-filter">
-                <span className="sr-only">Filter account status</span>
+                <span className="sr-only">Filter overdue status</span>
                 <select value={status} onChange={(event) => setStatus(event.target.value)}>
                   <option value="">All statuses</option>
-                  <option value="active">Active</option>
-                  <option value="restricted">Restricted</option>
+                  <option value="warning">Warning</option>
+                  <option value="notice">Notice</option>
                   <option value="inactive">Inactive</option>
                 </select>
               </label>
@@ -434,7 +442,7 @@ export default function DelinquentAccounts() {
                                   </div>
                                 </td>
                                 <td>
-                                  <StatusBadge status={r.customer.status} />
+                                  <StatusBadge status={r.stage.collectionStatus} />
                                 </td>
                                 <td>
                                   <span className="overdue-last-contact">
@@ -537,7 +545,7 @@ export default function DelinquentAccounts() {
                       <strong>{peso(account.amount)}</strong>
                     </div>
 
-                    <div className="delinquent-hero-actions">
+                    {!preview && <div className="delinquent-hero-actions">
                       <Link className="button" to={`/admin/collections?customer=${account.customer.id}`}>
                         <Wallet size={15} /> Receive Payment
                       </Link>
@@ -547,7 +555,7 @@ export default function DelinquentAccounts() {
                       <Link className="button button-ghost" to={`/admin/customers/${account.customer.id}`}>
                         View Account <ArrowUpRight size={14} />
                       </Link>
-                    </div>
+                    </div>}
                   </div>
 
                   <div className="delinquent-dossier-body">
@@ -570,7 +578,7 @@ export default function DelinquentAccounts() {
                     </section>
 
                     {/* Record Follow-up Form */}
-                    <form className="delinquent-form-box" onSubmit={save}>
+                    {!preview && <form className="delinquent-form-box" onSubmit={save}>
                       <div className="delinquent-section-title" style={{ margin: 0 }}>
                         <h3>Follow-up</h3>
                       </div>
@@ -610,7 +618,7 @@ export default function DelinquentAccounts() {
                       <button type="submit" className="button button-small" disabled={busy} style={{ width: '100%', marginTop: '6px' }}>
                         {busy ? 'Saving...' : 'Save Follow-up'}
                       </button>
-                    </form>
+                    </form>}
 
                     {/* Follow-up Timeline */}
                     <section>
